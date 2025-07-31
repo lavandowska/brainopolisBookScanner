@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Barcode, Loader2, Search, Camera } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { BrowserMultiFormatReader, NotFoundException } from '@zxing/browser';
+import { BrowserMultiFormatReader } from '@zxing/browser';
 import { useToast } from '@/hooks/use-toast';
 import { convertUpcToIsbn } from '@/lib/actions';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -43,7 +43,9 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                             toast({ variant: 'destructive', title: 'Error', description: error });
                         }
                     }
-                    if (err && !(err instanceof NotFoundException)) {
+                    if (err && err.message.includes('No MultiFormat Readers were able to detect a barcode')) {
+                        // This is the NotFoundException equivalent, we can ignore it.
+                    } else if (err) {
                         console.error(err);
                         toast({ variant: "destructive", title: "Scan Error", description: "Could not decode barcode." });
                         setIsScannerOpen(false);
