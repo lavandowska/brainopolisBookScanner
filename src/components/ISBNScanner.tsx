@@ -38,55 +38,66 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
         }
     }, []);
 
-    const startScan = useCallback(async () => {
-        if (!isScannerOpen || !videoRef.current) return;
+    const startScan = useCallback(async (stream: MediaStream) => {
+        if (!videoRef.current) return;
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            setHasCameraPermission(true);
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, async (result, err) => {
-                    if (result) {
-                        const upc = result.getText();
-                        setIsScannerOpen(false);
-                        const { isbn, error } = await convertUpcToIsbn(upc);
-                        if (isbn) {
-                            onScan(isbn);
-                        } else {
-                            toast({ variant: 'destructive', title: 'Error', description: error });
-                        }
+            videoRef.current.srcObject = stream;
+            await codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, async (result, err) => {
+                if (result) {
+                    const upc = result.getText();
+                    setIsScannerOpen(false); // This will trigger the useEffect cleanup
+                    const { isbn, error } = await convertUpcToIsbn(upc);
+                    if (isbn) {
+                        onScan(isbn);
+                    } else {
+                        toast({ variant: 'destructive', title: 'Error', description: error || "Failed to convert UPC." });
                     }
-                    if (err && err.message.includes('No MultiFormat Readers were able to detect a barcode')) {
+                }
+                if (err && !(err.name === 'NotFoundException')) {
+                     if (err && err.message.includes('No MultiFormat Readers were able to detect a barcode')) {
                         // This is the NotFoundException equivalent, we can ignore it.
                     } else if (err) {
                         console.error(err);
                         toast({ variant: "destructive", title: "Scan Error", description: "Could not decode barcode." });
                         setIsScannerOpen(false);
                     }
-                });
-            }
-        } catch (error) {
-            console.error('Error accessing camera:', error);
-            setHasCameraPermission(false);
-            toast({
-                variant: 'destructive',
-                title: 'Camera Access Denied',
-                description: 'Please enable camera permissions in your browser settings.',
+                }
             });
+        } catch (scanError) {
+            console.error("Scanning failed", scanError);
+            toast({ variant: 'destructive', title: 'Scan Error', description: 'An error occurred during scanning.' });
             setIsScannerOpen(false);
         }
-    }, [isScannerOpen, onScan, toast]);
+    }, [onScan, toast]);
 
     useEffect(() => {
-        if (isScannerOpen) {
-            startScan();
-        } else {
-            stopScan();
-        }
+        let stream: MediaStream | null = null;
+
+        const getCameraPermissionAndStart = async () => {
+            if (isScannerOpen) {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    setHasCameraPermission(true);
+                    await startScan(stream);
+                } catch (error) {
+                    console.error('Error accessing camera:', error);
+                    setHasCameraPermission(false);
+                    toast({
+                        variant: 'destructive',
+                        title: 'Camera Access Denied',
+                        description: 'Please enable camera permissions in your browser settings.',
+                    });
+                    setIsScannerOpen(false);
+                }
+            }
+        };
+
+        getCameraPermissionAndStart();
+
         return () => {
             stopScan();
         };
-    }, [isScannerOpen, startScan, stopScan]);
+    }, [isScannerOpen, startScan, stopScan, toast]);
 
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
