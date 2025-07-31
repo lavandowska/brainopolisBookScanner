@@ -8,5 +8,4 @@ export interface Book {
   genre: string[];
   price: number;
   asin: string;
-  enhancedDescription?: string;
 }

@@ -66,7 +66,7 @@ const upcToIsbnFlow = ai.defineFlow(
 
     // Let's add a manual fallback for a common case, as the LLM might not always get it.
     if (!output?.isbn && input.upc.length === 12) {
-        const potentialIsbnRoot = "978" + input.upc.substring(0, 9);
+        const potentialIsbnRoot = "978" + input.upc.substring(0, 11);
         let sum = 0;
         for (let i = 0; i < potentialIsbnRoot.length; i++) {
             const digit = parseInt(potentialIsbnRoot[i], 10);

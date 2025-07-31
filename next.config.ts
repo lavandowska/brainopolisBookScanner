@@ -9,13 +9,15 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    domains: ['books.google.com'],
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'placehold.co',
+        protocol: 'http',
+        hostname: 'books.google.com',
         port: '',
         pathname: '/**',
       },
+      new URL('http://books.google.com/books/**')
     ],
   },
 };

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { useToast } from '@/hooks/use-toast';
-import { convertUpcToIsbn } from '@/lib/actions';
+import { convertUpcToIsbn } from '@/lib/books';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 interface ISBNScannerProps {
@@ -26,12 +26,6 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
     const codeReader = useRef(new BrowserMultiFormatReader());
 
     const stopScan = useCallback(() => {
-        try {
-            codeReader.current.reset();
-        } catch (e) {
-            // It's possible the reader is not initialized, so we can ignore this error.
-            console.warn("Failed to reset code reader, it may not have been initialized.", e);
-        }
         if (videoRef.current?.srcObject) {
             (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
             videoRef.current.srcObject = null;
@@ -45,7 +39,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
             await codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, async (result, err) => {
                 if (result) {
                     const upc = result.getText();
-                    setIsScannerOpen(false); // This will trigger the useEffect cleanup
+                    setIsScannerOpen(false);
                     const { isbn, error } = await convertUpcToIsbn(upc);
                     if (isbn) {
                         onScan(isbn);
@@ -53,14 +47,12 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                         toast({ variant: 'destructive', title: 'Error', description: error || "Failed to convert UPC." });
                     }
                 }
-                if (err && !(err.name === 'NotFoundException')) {
-                     if (err && err.message.includes('No MultiFormat Readers were able to detect a barcode')) {
-                        // This is the NotFoundException equivalent, we can ignore it.
-                    } else if (err) {
-                        console.error(err);
-                        toast({ variant: "destructive", title: "Scan Error", description: "Could not decode barcode." });
-                        setIsScannerOpen(false);
-                    }
+                if (err && err.message.includes('No MultiFormat Readers were able to detect a barcode')) {
+                    // This is expected, we can ignore it.
+                } else if (err) {
+                    console.error("Barcode decoding error:", err);
+                    toast({ variant: "destructive", title: "Scan Error", description: "Could not decode barcode." });
+                    setIsScannerOpen(false);
                 }
             });
         } catch (scanError) {
@@ -104,7 +96,6 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
         e.preventDefault();
         if (isbn.trim()) {
             await onScan(isbn.trim());
-            setIsbn('');
         }
     };
 

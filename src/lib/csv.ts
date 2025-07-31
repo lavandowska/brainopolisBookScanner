@@ -11,7 +11,7 @@ export function exportToWooCommerceCsv(books: Book[]) {
     ];
 
     const rows = books.map(book => {
-        const description = book.enhancedDescription || book.description;
+        const description = book.description;
         const row = {
             "Type": "simple",
             "SKU": book.id,

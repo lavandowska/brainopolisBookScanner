@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Book } from "@/lib/types";
-import { fetchBookData } from "@/lib/actions";
+import { fetchBookData } from "@/lib/books";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
 import { ISBNScanner } from "@/components/ISBNScanner";
@@ -22,16 +22,17 @@ export default function Home() {
       toast({
         variant: "destructive",
         title: "Duplicate Book",
-        description: "This book is already in your list.",
+        description: "This book is already in your list: " + isbn,
       });
       return;
     }
 
     setIsScanning(true);
-    const { book, error } = await fetchBookData(isbn);
+    const { book, error } = await fetchBookData(isbn.replaceAll("\D", ""));
     setIsScanning(false);
 
     if (error) {
+      console.log(error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -58,10 +59,10 @@ export default function Home() {
     });
   };
   
-  const handleDescriptionEnhance = (bookId: string, enhancedDescription: string) => {
+  const handleDescriptionEnhance = (bookId: string) => {
     setBooks(prevBooks => 
       prevBooks.map(book => 
-        book.id === bookId ? { ...book, enhancedDescription } : book
+        book.id === bookId ? { ...book } : book
       )
     );
   };
