@@ -46,6 +46,8 @@ UPC: 0596000486
 First 9 digits with 978 prefix: 978059600048
 Then calculate check digit.
 
+Return only the ISBN or null in the isbn field of the JSON output.
+
 UPC: {{{upc}}}`,
 });
 
