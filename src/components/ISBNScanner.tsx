@@ -58,10 +58,10 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                             }
                         });
                     }
-                    if (err && !(err.constructor.name === 'NotFoundException')) {
-                         console.error("Barcode decoding error:", err);
-                         toast({ variant: "destructive", title: "Scan Error", description: "Could not decode barcode." });
-                         setIsScannerOpen(false);
+                    if (err && !(err instanceof DOMException && err.name === 'NotAllowedError')) {
+                        if (!(err.constructor.name === 'NotFoundException')) {
+                            console.error("Barcode decoding error:", err);
+                        }
                     }
                 });
             }

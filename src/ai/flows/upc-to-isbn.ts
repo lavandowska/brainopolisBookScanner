@@ -58,6 +58,7 @@ const upcToIsbnFlow = ai.defineFlow(
     outputSchema: UpcToIsbnOutputSchema,
   },
   async (input) => {
+    console.log(input.upc);
     // A simple heuristic for UPCs that are actually ISBN-13s
     if (input.upc.length === 13 && input.upc.startsWith('978')) {
         return { isbn: input.upc };
