@@ -63,19 +63,6 @@ const upcToIsbnFlow = ai.defineFlow(
     
     // For other cases, let Genkit try to figure it out.
     const {output} = await prompt(input);
-
-    // Let's add a manual fallback for a common case, as the LLM might not always get it.
-    if (!output?.isbn && input.upc.length === 12) {
-        const potentialIsbnRoot = "978" + input.upc.substring(0, 11);
-        let sum = 0;
-        for (let i = 0; i < potentialIsbnRoot.length; i++) {
-            const digit = parseInt(potentialIsbnRoot[i], 10);
-            sum += (i % 2 === 0) ? digit : digit * 3;
-        }
-        const checkDigit = (10 - (sum % 10)) % 10;
-        return { isbn: potentialIsbnRoot + checkDigit };
-    }
-
     return output!;
   }
 );

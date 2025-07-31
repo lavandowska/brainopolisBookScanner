@@ -26,71 +26,58 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
     const codeReader = useRef(new BrowserMultiFormatReader());
 
     const stopScan = useCallback(() => {
+        codeReader.current.reset();
         if (videoRef.current?.srcObject) {
             (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
             videoRef.current.srcObject = null;
         }
     }, []);
+    
+    useEffect(() => {
+        if (!isScannerOpen) {
+            stopScan();
+        }
+    }, [isScannerOpen, stopScan]);
 
-    const startScan = useCallback(async (stream: MediaStream) => {
-        if (!videoRef.current) return;
+
+    const handleScannerOpen = async () => {
+        setIsScannerOpen(true);
         try {
-            videoRef.current.srcObject = stream;
-            await codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, async (result, err) => {
-                if (result) {
-                    const upc = result.getText();
-                    setIsScannerOpen(false);
-                    const { isbn, error } = await convertUpcToIsbn(upc);
-                    if (isbn) {
-                        onScan(isbn);
-                    } else {
-                        toast({ variant: 'destructive', title: 'Error', description: error || "Failed to convert UPC." });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            setHasCameraPermission(true);
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
+                    if (result) {
+                        const upc = result.getText();
+                        setIsScannerOpen(false);
+                        convertUpcToIsbn(upc).then(({ isbn, error }) => {
+                             if (isbn) {
+                                onScan(isbn);
+                            } else {
+                                toast({ variant: 'destructive', title: 'Error', description: error || "Failed to convert UPC." });
+                            }
+                        });
                     }
-                }
-                if (err && err.message.includes('No MultiFormat Readers were able to detect a barcode')) {
-                    // This is expected, we can ignore it.
-                } else if (err) {
-                    console.error("Barcode decoding error:", err);
-                    toast({ variant: "destructive", title: "Scan Error", description: "Could not decode barcode." });
-                    setIsScannerOpen(false);
-                }
+                    if (err && !(err.constructor.name === 'NotFoundException')) {
+                         console.error("Barcode decoding error:", err);
+                         toast({ variant: "destructive", title: "Scan Error", description: "Could not decode barcode." });
+                         setIsScannerOpen(false);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            setHasCameraPermission(false);
+            toast({
+                variant: 'destructive',
+                title: 'Camera Access Denied',
+                description: 'Please enable camera permissions in your browser settings.',
             });
-        } catch (scanError) {
-            console.error("Scanning failed", scanError);
-            toast({ variant: 'destructive', title: 'Scan Error', description: 'An error occurred during scanning.' });
             setIsScannerOpen(false);
         }
-    }, [onScan, toast]);
-
-    useEffect(() => {
-        let stream: MediaStream | null = null;
-
-        const getCameraPermissionAndStart = async () => {
-            if (isScannerOpen) {
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                    setHasCameraPermission(true);
-                    await startScan(stream);
-                } catch (error) {
-                    console.error('Error accessing camera:', error);
-                    setHasCameraPermission(false);
-                    toast({
-                        variant: 'destructive',
-                        title: 'Camera Access Denied',
-                        description: 'Please enable camera permissions in your browser settings.',
-                    });
-                    setIsScannerOpen(false);
-                }
-            }
-        };
-
-        getCameraPermissionAndStart();
-
-        return () => {
-            stopScan();
-        };
-    }, [isScannerOpen, startScan, stopScan, toast]);
-
+    };
+    
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -131,7 +118,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                                 </>
                             )}
                         </Button>
-                         <Button type="button" variant="outline" onClick={() => setIsScannerOpen(true)} disabled={isScanning}>
+                         <Button type="button" variant="outline" onClick={handleScannerOpen} disabled={isScanning}>
                             <Camera className="h-4 w-4" />
                         </Button>
                     </form>
