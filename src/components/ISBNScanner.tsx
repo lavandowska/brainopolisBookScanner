@@ -27,16 +27,19 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
 
     const stopScan = useCallback(() => {
         if (videoRef.current?.srcObject) {
-            (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
             videoRef.current.srcObject = null;
         }
+        // The reset method on the reader instance will release resources.
+        codeReader.current.reset();
     }, []);
     
     useEffect(() => {
-        if (!isScannerOpen) {
+        return () => {
             stopScan();
-        }
-    }, [isScannerOpen, stopScan]);
+        };
+    }, [stopScan]);
 
 
     const handleScannerOpen = async () => {
@@ -50,6 +53,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                     if (result) {
                         const upc = result.getText();
                         setIsScannerOpen(false);
+                        stopScan();
                         convertUpcToIsbn(upc).then(({ isbn, error }) => {
                              if (isbn) {
                                 onScan(isbn);
@@ -58,10 +62,11 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                             }
                         });
                     }
-                    if (err && !(err instanceof DOMException && err.name === 'NotAllowedError')) {
-                        if (!(err.constructor.name === 'NotFoundException')) {
-                            console.error("Barcode decoding error:", err);
-                        }
+                    if (err && !(err.constructor.name === 'NotFoundException')) {
+                         console.error("Barcode decoding error:", err);
+                         toast({ variant: "destructive", title: "Scan Error", description: "Could not decode barcode." });
+                         setIsScannerOpen(false);
+                         stopScan();
                     }
                 });
             }
@@ -76,12 +81,19 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
             setIsScannerOpen(false);
         }
     };
-    
 
+    const handleDialogClose = (open: boolean) => {
+        if(!open) {
+            stopScan();
+        }
+        setIsScannerOpen(open);
+    }
+    
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (isbn.trim()) {
             await onScan(isbn.trim());
+            setIsbn('');
         }
     };
 
@@ -123,7 +135,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                     </form>
                 </CardContent>
             </Card>
-            <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+            <Dialog open={isScannerOpen} onOpenChange={handleDialogClose}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Scan Barcode</DialogTitle>
@@ -148,7 +160,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                         )}
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsScannerOpen(false)}>Cancel</Button>
+                        <Button variant="outline" onClick={() => handleDialogClose(false)}>Cancel</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
