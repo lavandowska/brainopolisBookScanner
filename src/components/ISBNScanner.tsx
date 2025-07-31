@@ -30,7 +30,6 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
             (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
             videoRef.current.srcObject = null;
         }
-        codeReader.current.reset();
     }, []);
     
     useEffect(() => {

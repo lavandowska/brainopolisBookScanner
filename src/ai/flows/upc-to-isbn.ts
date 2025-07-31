@@ -59,6 +59,8 @@ const upcToIsbnFlow = ai.defineFlow(
     // A simple heuristic for UPCs that are actually ISBN-13s
     if (input.upc.length === 13 && input.upc.startsWith('978')) {
         return { isbn: input.upc };
+    } else if (input.upc.length == 10) {
+      return { isbn: input.upc };
     }
     
     // For other cases, let Genkit try to figure it out.
