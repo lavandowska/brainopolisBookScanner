@@ -26,7 +26,12 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
     const codeReader = useRef(new BrowserMultiFormatReader());
 
     const stopScan = useCallback(() => {
-        codeReader.current.reset();
+        try {
+            codeReader.current.reset();
+        } catch (e) {
+            // It's possible the reader is not initialized, so we can ignore this error.
+            console.warn("Failed to reset code reader, it may not have been initialized.", e);
+        }
         if (videoRef.current?.srcObject) {
             (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
             videoRef.current.srcObject = null;
