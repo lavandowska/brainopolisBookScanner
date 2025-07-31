@@ -2,6 +2,7 @@
 
 import { Book } from "@/lib/types";
 import { enhanceBookDescription } from "@/ai/flows/enhance-book-description";
+import { upcToIsbn } from "@/ai/flows/upc-to-isbn";
 
 const mockBookDatabase: Record<string, Omit<Book, 'id' | 'enhancedDescription'>> = {
   "9780596000486": {
@@ -55,5 +56,18 @@ export async function getEnhancedDescription(description: string): Promise<{ enh
     } catch (e) {
         console.error(e);
         return { error: "Failed to enhance description." };
+    }
+}
+
+export async function convertUpcToIsbn(upc: string): Promise<{ isbn?: string, error?: string }> {
+    try {
+        const result = await upcToIsbn({ upc });
+        if (result.isbn && result.isbn in mockBookDatabase) {
+            return { isbn: result.isbn };
+        }
+        return { error: "Could not convert UPC to a valid ISBN or book not found." };
+    } catch (e) {
+        console.error(e);
+        return { error: "Failed to convert UPC to ISBN." };
     }
 }
