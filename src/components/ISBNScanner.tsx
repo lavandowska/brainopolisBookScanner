@@ -68,13 +68,13 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
         if (isScannerOpen) {
             startScan();
         } else {
-            codeReader.current.reset();
+            codeReader.current.stop();
             if (videoRef.current?.srcObject) {
                 (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
             }
         }
         return () => {
-            codeReader.current.reset();
+            codeReader.current.stop();
             if (videoRef.current?.srcObject) {
                 (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
             }
