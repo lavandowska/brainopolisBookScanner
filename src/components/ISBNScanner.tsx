@@ -26,11 +26,11 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
     const codeReader = useRef(new BrowserMultiFormatReader());
 
     const stopScan = useCallback(() => {
-        codeReader.current.reset();
         if (videoRef.current?.srcObject) {
             (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
             videoRef.current.srcObject = null;
         }
+        codeReader.current.reset();
     }, []);
     
     useEffect(() => {
