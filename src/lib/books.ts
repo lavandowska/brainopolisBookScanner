@@ -1,7 +1,6 @@
 "use server";
 
 import { Book } from "@/lib/types";
-import { upcToIsbn } from "@/ai/flows/upc-to-isbn";
 //import { amazonPricingByAsin } from '@/lib/amazon';
 
 export async function fetchBookData(isbn: string): Promise<{ book?: Book, error?: string }> {
@@ -72,17 +71,4 @@ async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book, error?: s
     },
     error: undefined
   };
-}
-
-export async function convertUpcToIsbn(upc: string): Promise<{ isbn?: string, error?: string }> {
-    try {
-        const result = await upcToIsbn({ upc });
-        if (result.isbn) {
-            return { isbn: result.isbn };
-        }
-        return { error: "Could not convert UPC to a valid ISBN or book not found." };
-    } catch (e) {
-        console.error(e);
-        return { error: "Failed to convert UPC to ISBN." };
-    }
 }

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { useToast } from '@/hooks/use-toast';
-import { convertUpcToIsbn } from '@/lib/books';
+import { convertUpcToIsbn } from "@/ai/flows/upc-to-isbn";
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 interface ISBNScannerProps {
@@ -31,8 +31,6 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
             stream.getTracks().forEach(track => track.stop());
             videoRef.current.srcObject = null;
         }
-        // The reset method on the reader instance will release resources.
-        codeReader.current.reset();
     }, []);
     
     useEffect(() => {
@@ -58,7 +56,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                              if (isbn) {
                                 onScan(isbn);
                             } else {
-                                toast({ variant: 'destructive', title: 'Error', description: error || "Failed to convert UPC." });
+                                toast({ variant: 'destructive', title: 'Error', description: error || `Failed to convert UPC ${upc}.` });
                             }
                         });
                     }
