@@ -25,6 +25,14 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
 
     const codeReader = useRef(new BrowserMultiFormatReader());
 
+    const stopScan = useCallback(() => {
+        codeReader.current.reset();
+        if (videoRef.current?.srcObject) {
+            (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
+            videoRef.current.srcObject = null;
+        }
+    }, []);
+
     const startScan = useCallback(async () => {
         if (!isScannerOpen || !videoRef.current) return;
         try {
@@ -68,18 +76,12 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
         if (isScannerOpen) {
             startScan();
         } else {
-            codeReader.current.stop();
-            if (videoRef.current?.srcObject) {
-                (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
-            }
+            stopScan();
         }
         return () => {
-            codeReader.current.stop();
-            if (videoRef.current?.srcObject) {
-                (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
-            }
+            stopScan();
         };
-    }, [isScannerOpen, startScan]);
+    }, [isScannerOpen, startScan, stopScan]);
 
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
