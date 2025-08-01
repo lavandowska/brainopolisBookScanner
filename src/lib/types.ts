@@ -1,5 +1,6 @@
 export interface Book {
   id: string; // ISBN
+  isbn10: string;
   title: string;
   authors: string[];
   description: string;
@@ -8,4 +9,5 @@ export interface Book {
   genre: string[];
   price: number;
   asin: string;
+  tags: string; // New or Used
 }

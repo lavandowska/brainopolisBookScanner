@@ -9,7 +9,7 @@ import { ISBNScanner } from "@/components/ISBNScanner";
 import { BookCard } from "@/components/BookCard";
 import { Button } from "@/components/ui/button";
 import { Download, Trash2, BookX, CheckSquare, XSquare } from "lucide-react";
-import { exportToWooCommerceCsv } from "@/lib/csv";
+import { exportToWooCommerceCsv } from "@/lib/wooCommerceCsv";
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);

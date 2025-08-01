@@ -1,5 +1,5 @@
 "use server";
-export async function booksRunByIsbn(isbn: string): Promise<{ price?: number; error?: string; }> {
+export async function booksRunByIsbn(isbn: string): Promise<{ price?: number; tag?: string; error?: string; }> {
   const apiKey = process.env.BOOKS_RUN_API_KEY;
   if (!apiKey) {
     return { price: undefined, error: "Books.run API key not configured." };
@@ -16,10 +16,10 @@ export async function booksRunByIsbn(isbn: string): Promise<{ price?: number; er
   }
   // prefers used price over new as most of my books are used
   if (json.result.offers.booksrun.used != "none") {
-    return { price: json.result.offers.booksrun.used.price };
+    return { price: json.result.offers.booksrun.used.price, tag: "Used" };
   }
   if (json.result.offers.booksrun.new != "none") {
-    return { price: json.result.offers.booksrun.new.price };
+    return { price: json.result.offers.booksrun.new.price, tag: "New" };
   }
 
   return { price: undefined, error: "No price info found for this ISBN." };

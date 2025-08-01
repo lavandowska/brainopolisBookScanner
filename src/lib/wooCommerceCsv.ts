@@ -38,7 +38,7 @@ export function exportToWooCommerceCsv(books: Book[]) {
             "Sale price": "",
             "Regular price": book.price?.toString(),
             "Categories": book.genre?.join(', '),
-            "Tags": book.authors?.join(', '),
+            "Tags": book.authors?.join(', ') + book.tags?.join(' '),
             "Shipping class": "",
             "Images": book.imageUrl,
             "Download limit": "",
@@ -47,8 +47,8 @@ export function exportToWooCommerceCsv(books: Book[]) {
             "Grouped products": "",
             "Upsells": "",
             "Cross-sells": "",
-            "External URL": "",
-            "Button text": "",
+            "External URL": book.isbn10 ? `https://www.amazon.com/dp/${book.isbn10}` : "",
+            "Button text": book.isbn10 ? "Buy on Amazon" : "",
             "Position": "0"
         };
         // Ensure keys match headers for proper CSV creation

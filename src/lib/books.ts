@@ -17,14 +17,16 @@ export async function fetchBookData(isbn: string): Promise<{ book?: Book, error?
     return { error: "Book not found for this ISBN." };
   }
 
-  const { price, error: priceError } = await booksRunByIsbn(book.id);
+  const { price, tag, error: priceError } = await booksRunByIsbn(book.id);
 
   if (priceError) {
     console.error("Error fetching BookRun pricing:", priceError);
     // Continue without price if fetching fails
-    return { book: book, error:priceError};
   } else if (price) {
     book.price = price;
+  }
+  if (tag) {
+    book.tags = [tag];
   }
   return { book: book };
 }

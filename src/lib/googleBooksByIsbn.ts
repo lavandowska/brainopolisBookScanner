@@ -1,5 +1,7 @@
 "use server";
+import { Book } from "lucide-react";
 import { Book } from "./types";
+import { booksRunByIsbn } from "./booksRunByIsbn";
 
 export async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book; error?: string; }> {
   const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
@@ -19,18 +21,8 @@ export async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book; er
   }
 
   const volumeInfo = json.items[0].volumeInfo;
-  const industryIdentifiers = volumeInfo.industryIdentifiers;
-  let asin = undefined;
-  if (industryIdentifiers) {
-    for (const identifier of industryIdentifiers) {
-      if (identifier.type === 'OTHER' && identifier.identifier.length === 10) {
-        asin = identifier.identifier;
-        break;
-      }
-    }
-  }
 
-  return {
+  const book = {
     book: {
       id: isbn,
       title: volumeInfo.title,
@@ -39,8 +31,24 @@ export async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book; er
       imageUrl: volumeInfo.imageLinks?.thumbnail,
       genre: volumeInfo.categories,
       imageHint: json.items[0].searchInfo?.textSnippet,
-      asin: asin
+      asin: undefined,
+      isbn10: undefined
     },
     error: undefined
   };
+
+  const industryIdentifiers = volumeInfo.industryIdentifiers;
+  let asin = undefined;
+  if (industryIdentifiers) {
+    for (const identifier of industryIdentifiers) {
+      if (identifier.type === 'ISBN_10' && identifier.identifier.length === 10) {
+        book.isbn10 = identifier.identifier;
+      }
+      if (identifier.type === 'OTHER' && identifier.identifier.length === 10) {
+        book.asin = identifier.identifier;
+      }
+    }
+  }
+
+  return book;
 }
