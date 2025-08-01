@@ -29,6 +29,7 @@ export function BookCard({ book, isSelected, onSelectionChange, onDescriptionEnh
         />
       </div>
       <div className="relative w-1/4">
+        <a href={`https://books.google.com/books?vid=${book.id}`} target="_blank" rel="noopener noreferrer">
          <Image
           src={book.imageUrl}
           alt={`Book cover for ${book.title}`}
@@ -37,6 +38,7 @@ export function BookCard({ book, isSelected, onSelectionChange, onDescriptionEnh
           className="object-cover w-full h-full"
           data-ai-hint={book.imageHint}
         />
+        </a>
       </div>
       <div className="w-3/4 flex flex-col">
         <CardHeader className="py-2 px-4">
