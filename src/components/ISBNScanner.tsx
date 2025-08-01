@@ -53,9 +53,9 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                 
                 codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
                     if (result) {
+                        stopScan();
                         const upc = result.getText();
                         setIsScannerOpen(false);
-                        stopScan();
                         convertUpcToIsbn(upc).then(({ isbn, error }) => {
                              if (isbn) {
                                 onScan(isbn);
