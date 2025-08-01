@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Barcode, Loader2, Search, Camera } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { BrowserMultiFormatReader } from '@zxing/browser';
+import { BrowserMultiFormatReader, BarcodeFormat } from '@zxing/browser';
 import { useToast } from '@/hooks/use-toast';
 import { convertUpcToIsbn } from "@/ai/flows/upc-to-isbn";
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -47,6 +47,10 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
             setHasCameraPermission(true);
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
+                const hints = new Map();
+                const formats = [BarcodeFormat.EAN_13, BarcodeFormat.UPC_A];
+                hints.set(2, formats); // Corresponds to DecodeHintType.POSSIBLE_FORMATS
+                
                 codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
                     if (result) {
                         const upc = result.getText();
@@ -142,6 +146,11 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="relative">
+                         {/* Overlay for scanning guidance */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                            <div className="w-64 h-32 border-2 border-dashed border-primary rounded-md"></div>
+                            <p className="mt-4 text-sm text-muted-foreground text-center">Center the barcode within the frame.</p>
+                        </div>
                         <video ref={videoRef} className="w-full aspect-video rounded-md" autoPlay muted playsInline />
                         {hasCameraPermission === false && (
                              <Alert variant="destructive">
@@ -152,7 +161,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                             </Alert>
                         )}
                          {isScanning && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-20">
                                 <Loader2 className="animate-spin text-white h-10 w-10" />
                             </div>
                         )}
