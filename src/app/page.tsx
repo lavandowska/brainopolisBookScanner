@@ -8,7 +8,7 @@ import { Header } from "@/components/Header";
 import { ISBNScanner } from "@/components/ISBNScanner";
 import { BookCard } from "@/components/BookCard";
 import { Button } from "@/components/ui/button";
-import { Download, Trash2, BookX } from "lucide-react";
+import { Download, Trash2, BookX, CheckSquare, XSquare } from "lucide-react";
 import { exportToWooCommerceCsv } from "@/lib/csv";
 
 export default function Home() {
@@ -93,6 +93,16 @@ export default function Home() {
       }
   };
 
+  const handleSelectAll = () => {
+    if (selectedBooks.size === books.length) {
+      setSelectedBooks(new Set());
+    } else {
+      setSelectedBooks(new Set(books.map(b => b.id)));
+    }
+  };
+
+  const allSelected = selectedBooks.size > 0 && selectedBooks.size === books.length;
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
@@ -106,7 +116,11 @@ export default function Home() {
                 <div className="font-medium text-foreground">
                   {selectedBooks.size} of {books.length} book(s) selected
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap justify-center">
+                   <Button variant="outline" onClick={handleSelectAll} disabled={books.length === 0}>
+                    {allSelected ? <XSquare className="mr-2 h-4 w-4" /> : <CheckSquare className="mr-2 h-4 w-4" />}
+                    {allSelected ? 'Deselect All' : 'Select All'}
+                  </Button>
                   <Button variant="outline" onClick={handleExportSelected} disabled={selectedBooks.size === 0}>
                     <Download className="mr-2 h-4 w-4" /> Export Selected
                   </Button>
