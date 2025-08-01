@@ -19,8 +19,8 @@ export function BookCard({ book, isSelected, onSelectionChange, onDescriptionEnh
   const { toast } = useToast();
 
   return (
-    <Card className="flex flex-col md:flex-row overflow-hidden transition-all duration-300 hover:shadow-lg relative rounded-lg">
-      <div className="absolute top-4 right-4 z-10">
+    <Card className="flex flex-row overflow-hidden transition-all duration-300 hover:shadow-lg relative rounded-lg h-36">
+      <div className="absolute top-2 right-2 z-10">
         <Checkbox
           checked={isSelected}
           onCheckedChange={(checked) => onSelectionChange(book.id, !!checked)}
@@ -28,38 +28,38 @@ export function BookCard({ book, isSelected, onSelectionChange, onDescriptionEnh
           className="bg-white/80 backdrop-blur-sm"
         />
       </div>
-      <div className="relative md:w-1/3">
+      <div className="relative w-1/4">
          <Image
           src={book.imageUrl}
           alt={`Book cover for ${book.title}`}
-          width={100}
-          height={150}
+          width={80}
+          height={120}
           className="object-cover w-full h-full"
           data-ai-hint={book.imageHint}
         />
       </div>
-      <div className="w-full md:w-2/3 flex flex-col">
-        <CardHeader>
-          <CardTitle>{book.title}</CardTitle>
-          <CardDescription>by {book.authors?.join(', ')}</CardDescription>
+      <div className="w-3/4 flex flex-col">
+        <CardHeader className="py-2 px-4">
+          <CardTitle className="text-base">{book.title}</CardTitle>
+          <CardDescription className="text-xs">by {book.authors?.join(', ')}</CardDescription>
         </CardHeader>
-        <CardContent className="flex-grow space-y-4">
+        <CardContent className="flex-grow p-4 pt-0 space-y-2">
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1">
-              <AccordionTrigger>Description</AccordionTrigger>
-              <AccordionContent className="space-y-2">
-                <p className="text-muted-foreground">{book.description}</p>
+              <AccordionTrigger className="text-xs py-1">Description</AccordionTrigger>
+              <AccordionContent className="space-y-1">
+                <p className="text-xs text-muted-foreground line-clamp-2">{book.description}</p>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
           
-          <div className="flex flex-wrap gap-2">
-            {book.genre?.map(g => <Badge key={g} variant="secondary">{g}</Badge>)}
+          <div className="flex flex-wrap gap-1">
+            {book.genre?.map(g => <Badge key={g} variant="secondary" className="text-xs px-1.5 py-0.5">{g}</Badge>)}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">ASIN: {book.asin}</div>
-          <div className="text-lg font-bold text-primary">${book.price?.toFixed(2)}</div>
+        <CardFooter className="flex justify-between items-center py-2 px-4">
+          <div className="text-xs text-muted-foreground">ASIN: {book.asin}</div>
+          <div className="text-sm font-bold text-primary">${book.price?.toFixed(2)}</div>
         </CardFooter>
       </div>
     </Card>
