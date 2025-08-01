@@ -24,6 +24,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
     const { toast } = useToast();
 
     const codeReader = useRef(new BrowserMultiFormatReader());
+    const isScanningRef = useRef(false);
 
     const stopScan = useCallback(() => {
         if (videoRef.current?.srcObject) {
@@ -42,6 +43,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
 
     const handleScannerOpen = async () => {
         setIsScannerOpen(true);
+        isScanningRef.current = true;
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             setHasCameraPermission(true);
@@ -52,7 +54,8 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                 hints.set(2, formats); // Corresponds to DecodeHintType.POSSIBLE_FORMATS
                 
                 codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
-                    if (result) {
+                    if (result && isScanningRef.current) {
+                        isScanningRef.current = false; // Prevent further scans
                         stopScan();
                         const upc = result.getText();
                         setIsScannerOpen(false);
@@ -66,9 +69,6 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                     }
                     if (err && !(err.constructor.name === 'NotFoundException')) {
                          console.error("Barcode decoding error:", err);
-                         toast({ variant: "destructive", title: "Scan Error", description: "Could not decode barcode." });
-                         setIsScannerOpen(false);
-                         stopScan();
                     }
                 });
             }
@@ -86,6 +86,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
 
     const handleDialogClose = (open: boolean) => {
         if(!open) {
+            isScanningRef.current = false;
             stopScan();
         }
         setIsScannerOpen(open);
