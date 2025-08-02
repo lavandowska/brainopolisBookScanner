@@ -9,5 +9,5 @@ export interface Book {
   genre: string[];
   price: number;
   asin: string;
-  tags: string; // New or Used
+  tag: string; // New or Used
 }

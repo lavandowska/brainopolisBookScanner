@@ -38,7 +38,7 @@ export function exportToWooCommerceCsv(books: Book[]) {
             "Sale price": "",
             "Regular price": book.price?.toString(),
             "Categories": book.genre?.join(', '),
-            "Tags": book.authors?.join(', ') + book.tags?.join(' '),
+            "Tags": book.authors?.join(', ') + book.tag,
             "Shipping class": "",
             "Images": book.imageUrl,
             "Download limit": "",
