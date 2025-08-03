@@ -9,6 +9,8 @@ export function exportToWooCommerceCsv(books: Book[]) {
         "Tags", "Shipping class", "Images", "Download limit", "Download expiry days", "Parent",
         "Grouped products", "Upsells", "Cross-sells", "External URL", "Button text", "Position"
     ];
+    const amazonAffTag = process.env.AMAZON_AFFILIATE_TAG;
+    const amazonAffQuery = amazonAffTag != undefined ? `&tag=${amazonAffTag}&language=en_US&th=1&ref_=as_li_ss_tl` : '';
 
     const rows = books.map(book => {
         const description = book.description;
@@ -38,7 +40,7 @@ export function exportToWooCommerceCsv(books: Book[]) {
             "Sale price": "",
             "Regular price": book.price?.toString(),
             "Categories": book.genre?.join(', '),
-            "Tags": book.authors?.join(', ') + book.tag,
+            "Tags": book.authors?.join(', ') + ", " + book.tag,
             "Shipping class": "",
             "Images": book.imageUrl,
             "Download limit": "",
@@ -47,7 +49,7 @@ export function exportToWooCommerceCsv(books: Book[]) {
             "Grouped products": "",
             "Upsells": "",
             "Cross-sells": "",
-            "External URL": book.isbn10 ? `https://www.amazon.com/dp/${book.isbn10}` : "",
+            "External URL": book.isbn10 ? `https://www.amazon.com/dp/${book.isbn10}${amazonAffQuery}` : "",
             "Button text": book.isbn10 ? "Buy on Amazon" : "",
             "Position": "0"
         };
