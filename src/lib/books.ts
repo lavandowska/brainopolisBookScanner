@@ -26,7 +26,7 @@ export async function fetchBookData(isbn: string): Promise<{ book?: Book, error?
     book.price = price;
   }
   if (tag) {
-    book.tags = [tag];
+    book.tag = tag;
   }
   return { book: book };
 }

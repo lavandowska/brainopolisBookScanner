@@ -1,7 +1,5 @@
 "use server";
-import { Book } from "lucide-react";
 import { Book } from "./types";
-import { booksRunByIsbn } from "./booksRunByIsbn";
 
 export async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book; error?: string; }> {
   const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
@@ -31,6 +29,12 @@ export async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book; er
       imageUrl: volumeInfo.imageLinks?.thumbnail,
       genre: volumeInfo.categories,
       imageHint: json.items[0].searchInfo?.textSnippet,
+      weight: undefined,
+      height: volumeInfo.dimensions?.height,
+      width: volumeInfo.dimensions?.width,
+      length: volumeInfo.dimensions?.length,
+      tag: "",
+      price: json.items[0].saleInfo?.retailPrice?.amount,
       asin: undefined,
       isbn10: undefined
     },
@@ -38,14 +42,13 @@ export async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book; er
   };
 
   const industryIdentifiers = volumeInfo.industryIdentifiers;
-  let asin = undefined;
   if (industryIdentifiers) {
     for (const identifier of industryIdentifiers) {
       if (identifier.type === 'ISBN_10' && identifier.identifier.length === 10) {
-        book.isbn10 = identifier.identifier;
+        book.book.isbn10 = identifier.identifier;
       }
       if (identifier.type === 'OTHER' && identifier.identifier.length === 10) {
-        book.asin = identifier.identifier;
+        book.book.asin = identifier.identifier;
       }
     }
   }

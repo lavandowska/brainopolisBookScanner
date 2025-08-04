@@ -10,4 +10,8 @@ export interface Book {
   price: number;
   asin: string;
   tag: string; // New or Used
+  height: string;
+  width: string;
+  length: string;
+  weight: string;
 }
