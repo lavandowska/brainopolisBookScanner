@@ -26,7 +26,7 @@ export async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book; er
       title: volumeInfo.title,
       authors: volumeInfo.authors,
       description: volumeInfo.description,
-      imageUrl: volumeInfo.imageLinks?.thumbnail,
+      imageUrl: `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`, //volumeInfo.imageLinks?.thumbnail,
       genre: volumeInfo.categories,
       imageHint: json.items[0].searchInfo?.textSnippet,
       weight: undefined,
@@ -44,6 +44,9 @@ export async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book; er
   const industryIdentifiers = volumeInfo.industryIdentifiers;
   if (industryIdentifiers) {
     for (const identifier of industryIdentifiers) {
+      if (identifier.type === 'ISBN_13' && identifier.identifier.length === 13) {
+        book.book.id = identifier.identifier;
+      }
       if (identifier.type === 'ISBN_10' && identifier.identifier.length === 10) {
         book.book.isbn10 = identifier.identifier;
       }

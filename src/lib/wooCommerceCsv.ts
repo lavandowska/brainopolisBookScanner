@@ -10,10 +10,11 @@ export function exportToWooCommerceCsv(books: Book[]) {
         "Grouped products", "Upsells", "Cross-sells", "External URL", "Button text", "Position"
     ];
     const amazonAffTag = process.env.AMAZON_AFFILIATE_TAG;
-    const amazonAffQuery = amazonAffTag != undefined ? `&tag=${amazonAffTag}&language=en_US&th=1&ref_=as_li_ss_tl` : '';
-
+    const amazonAffQuery = amazonAffTag == undefined ? undefined : `?tag=${amazonAffTag}&language=en_US&th=1&ref_=as_li_ss_tl`;
+    
     const rows = books.map(book => {
-        const description = book.description;
+        const alsoOnAmazon = amazonAffQuery == undefined ? '' : ` <a href='https://www.amazon.com/dp/${book.id}${amazonAffQuery}' target='amazon'>Also on Amazon</a>`;
+        const description = book.description + alsoOnAmazon;
         const row = {
             "Type": "simple",
             "SKU": book.id,
@@ -40,8 +41,8 @@ export function exportToWooCommerceCsv(books: Book[]) {
             "Tags": book.authors?.join(', ') + ", " + book.tag,
             "Shipping class": "",
             "Images": book.imageUrl,
-            "External URL": book.isbn10 ? `https://www.amazon.com/dp/${book.isbn10}${amazonAffQuery}` : "",
-            "Button text": book.isbn10 ? "Buy on Amazon" : "",
+            "External URL": amazonAffQuery == undefined ? '' : `https://www.amazon.com/dp/${book.id}${amazonAffQuery}`,
+            "Button text": amazonAffQuery == undefined ? '' : "Also on Amazon",
         };
         // Ensure keys match headers for proper CSV creation
         return headers.map(header => `"${(row[header as keyof typeof row] || '').toString().replace(/"/g, '""')}"`).join(',');

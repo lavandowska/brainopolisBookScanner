@@ -1,4 +1,7 @@
 "use server";
+
+import { Tag } from "lucide-react";
+
 export async function booksRunByIsbn(isbn: string): Promise<{ price?: number; tag?: string; error?: string; }> {
   const apiKey = process.env.BOOKS_RUN_API_KEY;
   if (!apiKey) {
@@ -15,12 +18,21 @@ export async function booksRunByIsbn(isbn: string): Promise<{ price?: number; ta
     return { price: undefined, error: `Unable to fetch price for ISBN ${isbn}.` };
   }
   // prefers used price over new as most of my books are used
+  var result = {price: 9.99, tag: "Used"};
   if (json.result.offers.booksrun.used != "none") {
-    return { price: json.result.offers.booksrun.used.price, tag: "Used" };
+    result = { price: json.result.offers.booksrun.used.price, tag: "Used" };
   }
-  if (json.result.offers.booksrun.new != "none") {
-    return { price: json.result.offers.booksrun.new.price, tag: "New" };
+  else if (json.result.offers.booksrun.new != "none") {
+    result = { price: json.result.offers.booksrun.new.price, tag: "New" };
   }
+  if (json.result.offers.marketplace.length > 0) {
+    json.result.offers.marketplace.forEach((offer) => {
+      if (offer.used && offer.used.price && offer.used.price >= 3.99 && offer.used.price < result.price) {
+        result.price = offer.used.price;
+        result.tag = "Used";
+      }
+    });
+  }
+  return result;
 
-  return { price: undefined, error: "No price info found for this ISBN." };
 }

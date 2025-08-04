@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['books.google.com'],
+    domains: ['books.google.com', 'covers.openlibrary.org'],
     remotePatterns: [
       {
         protocol: 'http',
@@ -17,7 +17,8 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      new URL('http://books.google.com/books/**')
+      new URL('http://books.google.com/books/**'),
+      new URL('https://covers.openlibrary.org/**')
     ],
   },
 };
