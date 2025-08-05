@@ -9,11 +9,13 @@ export function exportToWooCommerceCsv(books: Book[]) {
         "Tags", "Shipping class", "Images", "Download limit", "Download expiry days", "Parent",
         "Grouped products", "Upsells", "Cross-sells", "External URL", "Button text", "Position"
     ];
-    const amazonAffTag = process.env.AMAZON_AFFILIATE_TAG;
+    const amazonAffTag = process.env.NEXT_PUBLIC_AMAZON_AFFILIATE_TAG; 
     const amazonAffQuery = amazonAffTag == undefined ? undefined : `?tag=${amazonAffTag}&language=en_US&th=1&ref_=as_li_ss_tl`;
     
     const rows = books.map(book => {
-        const alsoOnAmazon = amazonAffQuery == undefined ? '' : ` <a href='https://www.amazon.com/dp/${book.id}${amazonAffQuery}' target='amazon'>Also on Amazon</a>`;
+        // exports with HTML in them must be uploaded to the server and Imported to WooCommerce from there
+        // this is a "limitation" in WordPress for security's sake
+        const alsoOnAmazon = amazonAffQuery == undefined ? '' : ` <a href='https://www.amazon.com/dp/${book.isbn10}${amazonAffQuery}' target='amazon'>Also on Amazon</a>`;
         const description = book.description + alsoOnAmazon;
         const row = {
             "Type": "simple",
@@ -36,12 +38,12 @@ export function exportToWooCommerceCsv(books: Book[]) {
             "Allow customer reviews?": "1",
             "Purchase note": "",
             "Sale price": "",
-            "Regular price": book.price?.toString(),
+            "Regular price": book.price || '',
             "Categories": book.genre?.join(', '),
             "Tags": book.authors?.join(', ') + ", " + book.tag,
             "Shipping class": "",
             "Images": book.imageUrl,
-            "External URL": amazonAffQuery == undefined ? '' : `https://www.amazon.com/dp/${book.id}${amazonAffQuery}`,
+            "External URL": amazonAffQuery == undefined ? '' : `https://www.amazon.com/dp/${book.isbn10}${amazonAffQuery}`,
             "Button text": amazonAffQuery == undefined ? '' : "Also on Amazon",
         };
         // Ensure keys match headers for proper CSV creation

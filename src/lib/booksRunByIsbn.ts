@@ -1,6 +1,6 @@
 "use server";
 
-import { Tag } from "lucide-react";
+import { Book } from "./types";
 
 export async function booksRunByIsbn(isbn: string): Promise<{ price?: number; tag?: string; error?: string; }> {
   const apiKey = process.env.BOOKS_RUN_API_KEY;
