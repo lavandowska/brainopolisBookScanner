@@ -3,13 +3,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Barcode, Loader2, Search, Camera } from 'lucide-react';
+import { Loader2, Search, Camera, ScanLine } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { BrowserMultiFormatReader, BarcodeFormat } from '@zxing/browser';
 import { useToast } from '@/hooks/use-toast';
-import { convertUpcToIsbn } from "@/ai/flows/upc-to-isbn";
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { extractIsbnFromImage } from '@/ai/flows/extract-isbn-from-image';
 
 interface ISBNScannerProps {
     onScan: (isbn: string) => Promise<void>;
@@ -20,11 +19,9 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
     const [isbn, setIsbn] = useState('');
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const { toast } = useToast();
-
-    const codeReader = useRef(new BrowserMultiFormatReader());
-    const isScanningRef = useRef(false);
 
     const stopScan = useCallback(() => {
         if (videoRef.current?.srcObject) {
@@ -40,37 +37,13 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
         };
     }, [stopScan]);
 
-
     const handleScannerOpen = async () => {
         setIsScannerOpen(true);
-        isScanningRef.current = true;
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             setHasCameraPermission(true);
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
-                const hints = new Map();
-                const formats = [BarcodeFormat.EAN_13, BarcodeFormat.UPC_A];
-                hints.set(2, formats); // Corresponds to DecodeHintType.POSSIBLE_FORMATS
-                
-                codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
-                    if (result && isScanningRef.current) {
-                        isScanningRef.current = false; // Prevent further scans
-                        stopScan();
-                        const upc = result.getText();
-                        setIsScannerOpen(false);
-                        convertUpcToIsbn(upc).then(({ isbn, error }) => {
-                             if (isbn) {
-                                onScan(isbn);
-                            } else {
-                                toast({ variant: 'destructive', title: 'Error', description: error || `Failed to convert UPC ${upc}.` });
-                            }
-                        });
-                    }
-                    if (err && !(err.constructor.name === 'NotFoundException')) {
-                         console.error("Barcode decoding error:", err);
-                    }
-                });
             }
         } catch (error) {
             console.error('Error accessing camera:', error);
@@ -86,7 +59,6 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
 
     const handleDialogClose = (open: boolean) => {
         if(!open) {
-            isScanningRef.current = false;
             stopScan();
         }
         setIsScannerOpen(open);
@@ -100,16 +72,45 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
         }
     };
 
+    const handleCaptureAndScan = async () => {
+        if (!videoRef.current) return;
+        setIsProcessing(true);
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        const context = canvas.getContext('2d');
+        if (context) {
+            context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+            const imageDataUri = canvas.toDataURL('image/jpeg');
+            
+            try {
+                const { isbn: extractedIsbn } = await extractIsbnFromImage({ imageDataUri });
+                if (extractedIsbn) {
+                    await onScan(extractedIsbn);
+                    handleDialogClose(false);
+                } else {
+                    toast({ variant: 'destructive', title: 'Scan Failed', description: 'Could not find an ISBN in the image. Please try again.' });
+                }
+            } catch (error) {
+                 toast({ variant: 'destructive', title: 'Error', description: 'An error occurred during scanning.' });
+                 console.error(error);
+            } finally {
+                setIsProcessing(false);
+            }
+        }
+    }
+
     return (
         <>
             <Card className="w-full max-w-md mx-auto shadow-md">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <Barcode className="h-6 w-6" />
+                        <ScanLine className="h-6 w-6" />
                         Scan Book ISBN
                     </CardTitle>
                     <CardDescription>
-                        Enter the ISBN of a book, or scan a barcode.
+                        Enter an ISBN manually, or scan it with your camera.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -141,17 +142,12 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
             <Dialog open={isScannerOpen} onOpenChange={handleDialogClose}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Scan Barcode</DialogTitle>
+                        <DialogTitle>Scan ISBN</DialogTitle>
                         <DialogDescription>
-                            Point your camera at a book's barcode.
+                            Point your camera at a book's ISBN code.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="relative">
-                         {/* Overlay for scanning guidance */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-                            <div className="w-64 h-32 border-2 border-dashed border-primary rounded-md"></div>
-                            <p className="mt-4 text-sm text-muted-foreground text-center">Center the barcode within the frame.</p>
-                        </div>
                         <video ref={videoRef} className="w-full aspect-video rounded-md" autoPlay muted playsInline />
                         {hasCameraPermission === false && (
                              <Alert variant="destructive">
@@ -161,7 +157,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                                 </AlertDescription>
                             </Alert>
                         )}
-                         {isScanning && (
+                         {isProcessing && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-20">
                                 <Loader2 className="animate-spin text-white h-10 w-10" />
                             </div>
@@ -169,6 +165,10 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => handleDialogClose(false)}>Cancel</Button>
+                        <Button onClick={handleCaptureAndScan} disabled={isProcessing}>
+                            {isProcessing ? <Loader2 className="animate-spin" /> : <ScanLine className="mr-2 h-4 w-4"/>}
+                            Scan
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
