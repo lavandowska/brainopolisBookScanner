@@ -1,3 +1,4 @@
+
 "use server";
 
 import { Book } from "./types";
@@ -25,7 +26,7 @@ export async function booksRunByIsbn(isbn: string): Promise<{ price?: number; ta
   else if (json.result.offers.booksrun.new != "none") {
     result = { price: json.result.offers.booksrun.new.price, tag: "New" };
   }
-  if (json.result.offers.marketplace.length > 0) {
+  if (json.result.offers.marketplace && Array.isArray(json.result.offers.marketplace)) {
     json.result.offers.marketplace.forEach((offer) => {
       if (offer.used && offer.used.price && offer.used.price >= 3.99 && offer.used.price < result.price) {
         result.price = offer.used.price;
