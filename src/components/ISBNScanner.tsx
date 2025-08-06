@@ -32,35 +32,38 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
     }, []);
     
     useEffect(() => {
+        if (isScannerOpen) {
+            const getCameraPermission = async () => {
+              try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                setHasCameraPermission(true);
+        
+                if (videoRef.current) {
+                  videoRef.current.srcObject = stream;
+                }
+              } catch (error) {
+                console.error('Error accessing camera:', error);
+                setHasCameraPermission(false);
+                toast({
+                  variant: 'destructive',
+                  title: 'Camera Access Denied',
+                  description: 'Please enable camera permissions in your browser settings to use this app.',
+                });
+                setIsScannerOpen(false);
+              }
+            };
+        
+            getCameraPermission();
+        } else {
+            stopScan();
+        }
+
         return () => {
             stopScan();
         };
-    }, [stopScan]);
-
-    const handleScannerOpen = async () => {
-        setIsScannerOpen(true);
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            setHasCameraPermission(true);
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-            }
-        } catch (error) {
-            console.error('Error accessing camera:', error);
-            setHasCameraPermission(false);
-            toast({
-                variant: 'destructive',
-                title: 'Camera Access Denied',
-                description: 'Please enable camera permissions in your browser settings.',
-            });
-            setIsScannerOpen(false);
-        }
-    };
+    }, [isScannerOpen, stopScan, toast]);
 
     const handleDialogClose = (open: boolean) => {
-        if(!open) {
-            stopScan();
-        }
         setIsScannerOpen(open);
     }
     
@@ -133,7 +136,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                                 </>
                             )}
                         </Button>
-                         <Button type="button" variant="outline" onClick={handleScannerOpen} disabled={isScanning}>
+                         <Button type="button" variant="outline" onClick={() => setIsScannerOpen(true)} disabled={isScanning}>
                             <Camera className="h-4 w-4" />
                         </Button>
                     </form>
@@ -165,7 +168,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => handleDialogClose(false)}>Cancel</Button>
-                        <Button onClick={handleCaptureAndScan} disabled={isProcessing}>
+                        <Button onClick={handleCaptureAndScan} disabled={isProcessing || hasCameraPermission !== true}>
                             {isProcessing ? <Loader2 className="animate-spin" /> : <ScanLine className="mr-2 h-4 w-4"/>}
                             Scan
                         </Button>
