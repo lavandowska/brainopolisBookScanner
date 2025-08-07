@@ -55,8 +55,9 @@ export function exportToWooCommerceCsv(books: Book[]) {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-t;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
+    const timestamp = new Date().toISOString().replace(/[:.-]/g, '');
     link.setAttribute("href", url);
-    link.setAttribute("download", "woocommerce_products.csv");
+    link.setAttribute("download", `woocommerce_products_${timestamp}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();

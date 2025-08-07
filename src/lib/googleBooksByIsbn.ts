@@ -29,16 +29,16 @@ export async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book; er
       imageUrl: `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`, //volumeInfo.imageLinks?.thumbnail,
       genre: volumeInfo.categories,
       imageHint: json.items[0].searchInfo?.textSnippet,
-      weight: undefined,
+      weight: "",
       height: volumeInfo.dimensions?.height,
       width: volumeInfo.dimensions?.width,
       length: volumeInfo.dimensions?.length,
       tag: "",
       price: json.items[0].saleInfo?.retailPrice?.amount,
-      asin: undefined,
-      isbn10: undefined
+      asin: "",
+      isbn10: ""
     },
-    error: undefined
+    error: ""
   };
 
   const industryIdentifiers = volumeInfo.industryIdentifiers;
