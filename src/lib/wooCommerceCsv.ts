@@ -15,7 +15,7 @@ export function exportToWooCommerceCsv(books: Book[]) {
     const rows = books.map(book => {
         // exports with HTML in them must be uploaded to the server and Imported to WooCommerce from there
         // this is a "limitation" in WordPress for security's sake
-        const alsoOnAmazon = amazonAffQuery == undefined ? '' : `( <a href='https://www.amazon.com/dp/${book.isbn10}${amazonAffQuery}' target='amazon'>Also on Amazon</a> )`;
+        const alsoOnAmazon = amazonAffQuery == undefined ? '' : ` (<a href='https://www.amazon.com/dp/${book.isbn10}${amazonAffQuery}' target='amazon'>Also on Amazon</a>)`;
         const description = book.description + alsoOnAmazon;
         const row = {
             "Type": "simple",
