@@ -25,7 +25,7 @@ export async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book; er
       id: isbn,
       title: volumeInfo.title,
       authors: volumeInfo.authors,
-      description: volumeInfo.description,
+      description: volumeInfo.description ?? "No description available.",
       imageUrl: `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`, //volumeInfo.imageLinks?.thumbnail,
       genre: volumeInfo.categories,
       imageHint: json.items[0].searchInfo?.textSnippet,
