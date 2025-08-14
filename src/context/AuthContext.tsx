@@ -2,13 +2,14 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, signInWithPopup, User } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase';
+import { auth, googleProvider, facebookProvider } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   loginWithGoogle: () => void;
+  loginWithFacebook: () => void;
   logout: () => void;
 }
 
@@ -36,6 +37,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithFacebook = async () => {
+    try {
+      await signInWithPopup(auth, facebookProvider);
+      router.push('/');
+    } catch (error) {
+      console.error("Error signing in with Facebook: ", error);
+    }
+  };
+
   const logout = async () => {
     try {
       await auth.signOut();
@@ -46,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, loginWithGoogle, loginWithFacebook, logout }}>
       {children}
     </AuthContext.Provider>
   );
