@@ -10,12 +10,26 @@ import { BookCard } from "@/components/BookCard";
 import { Button } from "@/components/ui/button";
 import { Download, Trash2, BookX, CheckSquare, XSquare } from "lucide-react";
 import { exportToWooCommerceCsv } from "@/lib/wooCommerceCsv";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
   const [isScanning, setIsScanning] = useState(false);
   const { toast } = useToast();
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    router.push('/login');
+    return null;
+  }
 
   const handleScan = async (isbn: string) => {
     if (books.some(book => book.id === isbn)) {
