@@ -19,9 +19,15 @@ const FacebookIcon = (props: any) => (
     </svg>
 );
 
+const MicrosoftIcon = (props: any) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M11.4 22.5H1.5V12.6H11.4V22.5zM22.5 22.5H12.6V12.6H22.5V22.5zM11.4 11.4H1.5V1.5H11.4V11.4zM22.5 11.4H12.6V1.5H22.5V11.4z"/>
+    </svg>
+);
+
 
 export default function Login() {
-  const { user, loginWithGoogle, loginWithFacebook } = useAuth();
+  const { user, loginWithGoogle, loginWithFacebook, loginWithMicrosoft } = useAuth();
   const router = useRouter();
 
   if (user) {
@@ -46,6 +52,10 @@ export default function Login() {
             <Button className="w-full" onClick={loginWithFacebook}>
                 <FacebookIcon className="h-5 w-5 mr-2"/>
               Sign in with Facebook
+            </Button>
+            <Button className="w-full" onClick={loginWithMicrosoft}>
+                <MicrosoftIcon className="h-5 w-5 mr-2"/>
+                Sign in with Microsoft
             </Button>
           </div>
         </CardContent>

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, signInWithPopup, User } from 'firebase/auth';
-import { auth, googleProvider, facebookProvider } from '@/lib/firebase';
+import { auth, googleProvider, facebookProvider, microsoftProvider } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
@@ -10,6 +10,7 @@ interface AuthContextType {
   loading: boolean;
   loginWithGoogle: () => void;
   loginWithFacebook: () => void;
+  loginWithMicrosoft: () => void;
   logout: () => void;
 }
 
@@ -46,6 +47,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithMicrosoft = async () => {
+    try {
+      await signInWithPopup(auth, microsoftProvider);
+      router.push('/');
+    } catch (error) {
+      console.error("Error signing in with Microsoft: ", error);
+    }
+  };
+
   const logout = async () => {
     try {
       await auth.signOut();
@@ -56,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithGoogle, loginWithFacebook, logout }}>
+    <AuthContext.Provider value={{ user, loading, loginWithGoogle, loginWithFacebook, loginWithMicrosoft, logout }}>
       {children}
     </AuthContext.Provider>
   );
