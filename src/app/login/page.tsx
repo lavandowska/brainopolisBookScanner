@@ -29,6 +29,7 @@ const AppleIcon = (props: any) => (
 export default function Login() {
   const { user, loginWithGoogle, loginWithFacebook, loginWithApple } = useAuth();
   const router = useRouter();
+  const showFacebookLogin = process.env.NEXT_PUBLIC_FACEBOOK_AUTH_ENABLED === 'true';
 
   if (user) {
     router.push('/');
@@ -49,10 +50,12 @@ export default function Login() {
               <GoogleIcon className="h-5 w-5 mr-2" />
               Sign in with Google
             </Button>
-            <Button className="w-full" onClick={loginWithFacebook}>
-                <FacebookIcon className="h-5 w-5 mr-2"/>
-              Sign in with Facebook
-            </Button>
+            {showFacebookLogin && (
+              <Button className="w-full" onClick={loginWithFacebook}>
+                  <FacebookIcon className="h-5 w-5 mr-2"/>
+                Sign in with Facebook
+              </Button>
+            )}
             <Button className="w-full" onClick={loginWithApple}>
                 <AppleIcon className="h-5 w-5 mr-2"/>
                 Sign in with Apple
