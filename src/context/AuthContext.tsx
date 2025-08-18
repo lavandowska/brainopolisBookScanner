@@ -23,20 +23,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
-      if (user) {
-        router.push('/');
-      }
     });
     return () => unsubscribe();
-  }, [router]);
+  }, []);
 
   const loginWithGoogle = async () => {
+    console.log("Attempting to sign in with Google...");
+    console.log("Firebase Auth instance config:", auth.config);
+    console.log("Using authDomain:", auth.config.authDomain);
+
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       router.push('/');
     } catch (error) {
-      console.error("Error signing in with Google: ", error);
+      console.error("Firebase Auth Error:", error);
     }
   };
 
