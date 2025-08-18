@@ -29,9 +29,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithGoogle = async () => {
     try {
-      googleProvider.setCustomParameters({
-        'auth_domain': auth.config.authDomain
-      });
       await signInWithPopup(auth, googleProvider);
       router.push('/');
     } catch (error) {
