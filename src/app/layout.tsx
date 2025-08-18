@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
+import Link from 'next/link';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/AuthContext';
 
@@ -23,6 +24,8 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <AuthProvider>
             {children}
+            <footer>
+            </footer>
         </AuthProvider>
         <Toaster />
       </body>

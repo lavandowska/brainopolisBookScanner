@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,9 @@ const GoogleIcon = (props: any) => (
 );
 
 export default function Login() {
-  const { user, loginWithGoogle, loading } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { user, loginWithGoogle, loginWithEmailAndPassword, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -36,9 +38,8 @@ export default function Login() {
     return null; // Or a loading spinner, as the redirect will happen
   }
 
-
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center min-h-screen bg-background">      
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <BookOpen className="mx-auto h-12 w-12 text-primary" />
@@ -46,7 +47,8 @@ export default function Login() {
           <CardDescription>Sign in to continue</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col space-y-2">
+          <div className="grid gap-4">
+            {/* login with Google Auth */}
             <Button className="w-full" onClick={loginWithGoogle} disabled={loading}>
               {loading ? (
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -55,6 +57,28 @@ export default function Login() {
               )}
               Sign in with Google
             </Button>
+            
+            {/* login with email and password */}
+            <div className="grid gap-2">
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="password">Password</label>
+              <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-3 py-2 border rounded-md" />
+            </div>
+            <Button className="w-full" onClick={() => loginWithEmailAndPassword(email, password)} disabled={loading}>Login with Email</Button>
+            
+            {/* REGISTER */}
+            <div className="mt-4 text-sm text-center text-gray-600">
+              Don't have an account? <a href="/register" className="text-blue-600 hover:underline">Sign up here.</a>
+            </div>
           </div>
         </CardContent>
       </Card>
