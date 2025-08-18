@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, signInWithPopup, User, GoogleAuthProvider } from 'firebase/auth';
+import { onAuthStateChanged, signInWithPopup, User } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase-auth';
 import { useRouter } from 'next/navigation';
 
@@ -23,9 +23,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
+      if (user) {
+        router.push('/');
+      }
     });
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const loginWithGoogle = async () => {
     try {
