@@ -1,16 +1,14 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, signInWithPopup, User, GoogleAuthProvider, FacebookAuthProvider, OAuthProvider } from 'firebase/auth';
-import { auth, googleProvider, facebookProvider, appleProvider } from '@/lib/firebase-auth';
+import { onAuthStateChanged, signInWithPopup, User, GoogleAuthProvider } from 'firebase/auth';
+import { auth, googleProvider } from '@/lib/firebase-auth';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   loginWithGoogle: () => void;
-  loginWithFacebook: () => void;
-  loginWithApple: () => void;
   logout: () => void;
 }
 
@@ -41,30 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginWithFacebook = async () => {
-    try {
-      facebookProvider.setCustomParameters({
-        'auth_domain': auth.config.authDomain
-      });
-      await signInWithPopup(auth, facebookProvider);
-      router.push('/');
-    } catch (error) {
-      console.error("Error signing in with Facebook: ", error);
-    }
-  };
-
-  const loginWithApple = async () => {
-    try {
-      appleProvider.setCustomParameters({
-        'auth_domain': auth.config.authDomain
-      });
-      await signInWithPopup(auth, appleProvider);
-      router.push('/');
-    } catch (error) {
-      console.error("Error signing in with Apple: ", error);
-    }
-  };
-
   const logout = async () => {
     try {
       await auth.signOut();
@@ -75,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithGoogle, loginWithFacebook, loginWithApple, logout }}>
+    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
