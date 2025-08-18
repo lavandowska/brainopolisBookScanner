@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Book } from "@/lib/types";
 import { fetchBookData } from "@/lib/books";
 import { useToast } from "@/hooks/use-toast";
@@ -22,13 +22,14 @@ export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
-  if (!user) {
-    router.push('/login');
-    return null;
+  if (loading || !user) {
+    return <div>Loading...</div>;
   }
 
   const handleScan = async (isbn: string) => {
@@ -42,7 +43,7 @@ export default function Home() {
     }
 
     setIsScanning(true);
-    const { book, error } = await fetchBookData(isbn.replaceAll("\D", ""));
+    const { book, error } = await fetchBookData(isbn.replaceAll("\\D", ""), user.uid);
     setIsScanning(false);
 
     if (error) {

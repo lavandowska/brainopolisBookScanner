@@ -1,7 +1,7 @@
 "use server";
 import { Book } from "./types";
 
-export async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book; error?: string; }> {
+export async function googleBooksByIsbn(isbn: string, userId: string): Promise<{ book?: Book; error?: string; }> {
   const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
   if (!apiKey) {
     return { book: undefined, error: "Google Books API key not configured." };
@@ -29,6 +29,7 @@ export async function googleBooksByIsbn(isbn: string): Promise<{ book?: Book; er
       imageUrl: `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`, //volumeInfo.imageLinks?.thumbnail,
       genre: volumeInfo.categories,
       imageHint: json.items[0].searchInfo?.textSnippet,
+      userId: userId,
       weight: "",
       height: volumeInfo.dimensions?.height,
       width: volumeInfo.dimensions?.width,

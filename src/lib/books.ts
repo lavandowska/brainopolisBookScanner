@@ -1,15 +1,16 @@
 "use server";
 
 import { Book } from "@/lib/types";
+import { saveBook } from "./firebase";
 import { googleBooksByIsbn } from "./googleBooksByIsbn";
 import { booksRunByIsbn } from "./booksRunByIsbn";
 
-export async function fetchBookData(isbn: string): Promise<{ book?: Book, error?: string }> {
+export async function fetchBookData(isbn: string, userId: string): Promise<{ book?: Book, error?: string }> {
   if (isbn.length < 10 || isbn.length > 13) {
     return { error: "Invalid ISBN." };
   }
   
-  const { book, error } = await googleBooksByIsbn(isbn);
+  const { book, error } = await googleBooksByIsbn(isbn, userId);
 
   if (error) {
     return { error: error };    
@@ -28,6 +29,10 @@ export async function fetchBookData(isbn: string): Promise<{ book?: Book, error?
   if (tag) {
     book.tag = tag;
   }
+
+  // Save the book to Firebase
+  await saveBook(`${book.id}_${book.userId}`, book);
+  
   return { book: book };
 }
 
