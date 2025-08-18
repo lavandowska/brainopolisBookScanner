@@ -10,9 +10,11 @@ export async function googleBooksByIsbn(isbn: string, userId: string): Promise<{
     `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${apiKey}&country=US`
   );
   if (response.status !== 200) {
-    return { book: undefined, error: `Error fetching book for this ISBN. [${response.statusText}]` };
+    const errorText = await response.text();
+    console.error(`Error fetching book for this ISBN. [${response.statusText}]`, errorText);
+    return { book: undefined, error: `Error fetching book for this ISBN. Status: ${response.status}` };
   }
-  console.log(response);
+  
   const json = await response.json();
   if (!json || !json.items || json.items.length === 0) {
     return { book: undefined, error: "Unable to fetch book for this ISBN." };
