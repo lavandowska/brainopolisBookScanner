@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, signInWithPopup, User } from 'firebase/auth';
-import { auth, googleProvider, facebookProvider, appleProvider } from '@/lib/firebase';
+import { auth, googleProvider, facebookProvider, appleProvider } from '@/lib/firebase-auth';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {

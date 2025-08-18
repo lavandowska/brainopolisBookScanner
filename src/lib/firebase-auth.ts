@@ -1,8 +1,7 @@
-"use server";
+"use client";
 
-import { Book } from "./types";
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { getAuth, GoogleAuthProvider, FacebookAuthProvider, OAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
   "projectId": "brainopolisbooks-ptjrj",
@@ -15,12 +14,10 @@ const firebaseConfig = {
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
+const auth = getAuth(app);
 
-export async function saveBook(bookId: string, bookData: Book) {
-    try {
-        await setDoc(doc(db, "books", bookId), bookData);
-    } catch (e) {
-        console.error("Error adding document: ", e);
-    }
-}
+const googleProvider = new GoogleAuthProvider();
+const facebookProvider = new FacebookAuthProvider();
+const appleProvider = new OAuthProvider('apple.com');
+
+export { app, auth, googleProvider, facebookProvider, appleProvider };
