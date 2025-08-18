@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, signInWithPopup, User, GoogleAuthProvider } from 'firebase/auth';
+import { onAuthStateChanged, signInWithRedirect, User, GoogleAuthProvider, getRedirectResult } from 'firebase/auth';
 import { auth } from '@/lib/firebase-auth';
 import { useRouter } from 'next/navigation';
 
@@ -24,17 +24,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(user);
       setLoading(false);
     });
+
+    // Handle the redirect result
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // This is the signed-in user
+          const user = result.user;
+          setUser(user);
+          router.push('/');
+        }
+      })
+      .catch((error) => {
+        console.error("Error getting redirect result:", error);
+      }).finally(() => {
+        setLoading(false);
+      });
+
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const loginWithGoogle = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      router.push('/');
-    } catch (error) {
-      console.error("Firebase Auth Error:", error);
-    }
+    setLoading(true);
+    const provider = new GoogleAuthProvider();
+    await signInWithRedirect(auth, provider);
   };
 
   const logout = async () => {

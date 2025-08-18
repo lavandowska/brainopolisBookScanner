@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Loader2 } from 'lucide-react';
 
 const GoogleIcon = (props: any) => (
   <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -14,13 +15,27 @@ const GoogleIcon = (props: any) => (
 );
 
 export default function Login() {
-  const { user, loginWithGoogle } = useAuth();
+  const { user, loginWithGoogle, loading } = useAuth();
   const router = useRouter();
 
-  if (user) {
-    router.push('/');
-    return null;
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/');
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+     return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
   }
+
+  if (user) {
+    return null; // Or a loading spinner, as the redirect will happen
+  }
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -32,8 +47,12 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col space-y-2">
-            <Button className="w-full" onClick={loginWithGoogle}>
-              <GoogleIcon className="h-5 w-5 mr-2" />
+            <Button className="w-full" onClick={loginWithGoogle} disabled={loading}>
+              {loading ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <GoogleIcon className="h-5 w-5 mr-2" />
+              )}
               Sign in with Google
             </Button>
           </div>
