@@ -1,7 +1,7 @@
 "use server";
 
 import { Book } from "@/lib/types";
-import { saveBook } from "./firebase";
+import { getBook, saveBook, saveUserBook } from "./firebaseFunctions";
 import { googleBooksByIsbn } from "./googleBooksByIsbn";
 import { booksRunByIsbn } from "./booksRunByIsbn";
 
@@ -10,7 +10,15 @@ export async function fetchBookData(isbn: string, userId: string): Promise<{ boo
     return { error: "Invalid ISBN." };
   }
   
-  const { book, error } = await googleBooksByIsbn(isbn, userId);
+  // use saved books to save on calls out to APIs
+  const savedBook = await getBook(isbn);
+
+  if (savedBook != null) {
+    await saveUserBook(isbn, userId);
+    return { book: savedBook };
+  }
+
+  var { book, error } = await googleBooksByIsbn(isbn, userId);
 
   if (error) {
     return { error: error };    
@@ -29,9 +37,9 @@ export async function fetchBookData(isbn: string, userId: string): Promise<{ boo
   if (tag) {
     book.tag = tag;
   }
-
   // Save the book to Firebase
-  await saveBook(`${book.id}_${book.userId}`, book);
+  await saveBook(book.id, book);
+  await saveUserBook(book.id, userId);  
   
   return { book: book };
 }

@@ -1,6 +1,5 @@
 export interface Book {
   id: string; // ISBN
-  userId: string, 
   isbn10: string;
   title: string;
   authors: string[];
@@ -15,4 +14,9 @@ export interface Book {
   width: string;
   length: string;
   weight: string;
+}
+
+export interface UserBook {
+  id: string; // ISBN
+  userId: string, 
 }

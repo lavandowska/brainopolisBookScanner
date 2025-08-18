@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Trash2, BookX, CheckSquare, XSquare } from "lucide-react";
 import { exportToWooCommerceCsv } from "@/lib/wooCommerceCsv";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";import { getUserBooks } from "@/lib/firebaseFunctions";
 
 
 export default function Home() {
@@ -23,10 +23,16 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    const fetchBooks = async () => {
+      if (user) {
+        const userBooks = await getUserBooks(user.uid);
+        setBooks(userBooks);
+      }
+    };
     if (!loading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+ fetchBooks(); }, [user, loading, router]);
 
   if (loading || !user) {
     return <div>Loading...</div>;
