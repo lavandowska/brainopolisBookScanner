@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, signInWithPopup, User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithPopup, User, GoogleAuthProvider, FacebookAuthProvider, OAuthProvider } from 'firebase/auth';
 import { auth, googleProvider, facebookProvider, appleProvider } from '@/lib/firebase-auth';
 import { useRouter } from 'next/navigation';
 
@@ -31,6 +31,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithGoogle = async () => {
     try {
+      googleProvider.setCustomParameters({
+        'auth_domain': auth.config.authDomain
+      });
       await signInWithPopup(auth, googleProvider);
       router.push('/');
     } catch (error) {
@@ -40,6 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithFacebook = async () => {
     try {
+      facebookProvider.setCustomParameters({
+        'auth_domain': auth.config.authDomain
+      });
       await signInWithPopup(auth, facebookProvider);
       router.push('/');
     } catch (error) {
@@ -49,6 +55,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithApple = async () => {
     try {
+      appleProvider.setCustomParameters({
+        'auth_domain': auth.config.authDomain
+      });
       await signInWithPopup(auth, appleProvider);
       router.push('/');
     } catch (error) {
