@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, signInWithPopup, User } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase-auth';
+import { onAuthStateChanged, signInWithPopup, User, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '@/lib/firebase-auth';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
@@ -32,7 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
       router.push('/');
     } catch (error) {
       console.error("Error signing in with Google: ", error);
