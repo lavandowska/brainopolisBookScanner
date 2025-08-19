@@ -3,6 +3,7 @@
 
 import { Book, UserBook } from "./types";
 import { getAdminDb } from "./firebase-admin";
+import * as admin from 'firebase-admin';
 
 const isFirebaseAdminInitialized = () => {
     try {
@@ -14,6 +15,10 @@ const isFirebaseAdminInitialized = () => {
 }
 
 export async function getBook(isbn: string): Promise<Book | null> {
+    if (!isFirebaseAdminInitialized()) {
+        console.warn("Could not get book, Firebase Admin SDK not initialized.");
+        return null;
+    }
     try {
         const docRef = getAdminDb().collection("books").doc(isbn);
         const docSnap = await docRef.get();
@@ -27,7 +32,9 @@ export async function getBook(isbn: string): Promise<Book | null> {
 }
 
 export async function saveBook(bookId: string, bookData: Book) {
-    if (!isFirebaseAdminInitialized()) return;
+    if (!isFirebaseAdminInitialized()) {
+        throw new Error("Firebase Admin SDK not initialized. Cannot save book.");
+    }
     try {
         const docRef = getAdminDb().collection("books").doc(bookId);
         await docRef.set(bookData, { merge: true });
@@ -38,6 +45,10 @@ export async function saveBook(bookId: string, bookData: Book) {
 }
 
 export async function getUserBooks(userId: string): Promise<Book[]> {
+    if (!isFirebaseAdminInitialized()) {
+        console.warn("Could not get user books, Firebase Admin SDK not initialized.");
+        return [];
+    }
     try {
         const userBooksRef = getAdminDb().collection("user-books");
         const q = userBooksRef.where("userId", "==", userId);
@@ -48,6 +59,10 @@ export async function getUserBooks(userId: string): Promise<Book[]> {
         }
 
         const bookIds = userBooksSnapshot.docs.map(doc => doc.data().id);
+
+        if (bookIds.length === 0) {
+            return [];
+        }
 
         const bookDocs = await getAdminDb().collection('books').where(admin.firestore.FieldPath.documentId(), 'in', bookIds).get();
 
@@ -62,7 +77,9 @@ export async function getUserBooks(userId: string): Promise<Book[]> {
 }
 
 export async function saveUserBook(isbn: string, userId: string) {
-    if (!isFirebaseAdminInitialized()) return;
+    if (!isFirebaseAdminInitialized()) {
+        throw new Error("Firebase Admin SDK not initialized. Cannot save user book.");
+    }
     try {
         const docRef = getAdminDb().collection("user-books").doc(`${userId}:${isbn}`);
         await docRef.set({id: isbn, userId: userId});
