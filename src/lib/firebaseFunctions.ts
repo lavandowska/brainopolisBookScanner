@@ -2,11 +2,11 @@
 "use server";
 
 import { Book, UserBook } from "./types";
-import { adminDb } from "./firebase-admin";
+import { getAdminDb } from "./firebase-admin";
 
 export async function getBook(isbn: string): Promise<Book | null> {
     try {
-        const docRef = adminDb.collection("books").doc(isbn);
+        const docRef = getAdminDb().collection("books").doc(isbn);
         const docSnap = await docRef.get();
         if (docSnap.exists) {
             return docSnap.data() as Book;
@@ -19,7 +19,7 @@ export async function getBook(isbn: string): Promise<Book | null> {
 
 export async function saveBook(bookId: string, bookData: Book) {
     try {
-        const docRef = adminDb.collection("books").doc(bookId);
+        const docRef = getAdminDb().collection("books").doc(bookId);
         await docRef.set(bookData, { merge: true });
     } catch (e) {
         console.error("Error adding book: ", e);
@@ -29,7 +29,7 @@ export async function saveBook(bookId: string, bookData: Book) {
 
 export async function getUserBooks(userId: string): Promise<Book[]> {
     try {
-        const userBooksRef = adminDb.collection("user-books");
+        const userBooksRef = getAdminDb().collection("user-books");
         const q = userBooksRef.where("userId", "==", userId);
         const userBooksSnapshot = await q.get();
 
@@ -50,7 +50,7 @@ export async function getUserBooks(userId: string): Promise<Book[]> {
 
 export async function saveUserBook(isbn: string, userId: string) {
     try {
-        const docRef = adminDb.collection("user-books").doc(`${userId}:${isbn}`);
+        const docRef = getAdminDb().collection("user-books").doc(`${userId}:${isbn}`);
         await docRef.set({id: isbn, userId: userId});
     } catch (e) {
         console.error("Error adding document: ", e);
