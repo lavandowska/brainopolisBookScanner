@@ -24,7 +24,7 @@ export async function getBook(isbn: string) {
 
 export async function saveBook(bookId: string, bookData: Book) {
     try {
-        await setDoc(doc(db, "books", bookId), bookData);
+        await setDoc(doc(db, "books", bookId), bookData, { merge: true });
     } catch (e) {
         console.error("Error adding document: ", e);
     }
@@ -36,27 +36,26 @@ export async function getUserBooks(userId: string): Promise<Book[]> {
         const q = query(userBooksRef, where("userId", "==", userId));
         const userBooksSnapshot = await getDocs(q);
 
-        const books: Book[] = [];
-        for (const docSnapshot of userBooksSnapshot.docs) {
+        const bookPromises = userBooksSnapshot.docs.map(async (docSnapshot) => {
             const userBook = docSnapshot.data() as UserBook;
-            const bookDocRef = doc(db, "books", userBook.id);
-            const bookDocSnap = await getDoc(bookDocRef);
+            const book = await getBook(userBook.id);
+            return book;
+        });
 
-            if (bookDocSnap.exists()) {
-                books.push(bookDocSnap.data() as Book);
-            }
-        }
+        const books = (await Promise.all(bookPromises)).filter((book): book is Book => book !== null);
+        
         return books.sort((a, b) => a.title.localeCompare(b.title));
     } catch (e) {
         console.error("Error getting user books: ", e);
+        // Throw the error to be caught by the caller
+        throw new Error("An unexpected response was received from the server.");
     }
-    return [];
 }
 
 
 export async function saveUserBook(isbn: string, userId: string) {
     try {
-        await setDoc(doc(db, "user-books", isbn + ":" + userId), {id: isbn, userId: userId});
+        await setDoc(doc(db, "user-books", `${userId}:${isbn}`), {id: isbn, userId: userId});
     } catch (e) {
         console.error("Error adding document: ", e);
     }
