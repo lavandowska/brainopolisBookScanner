@@ -2,12 +2,20 @@
 "use server";
 
 import { Book, UserBook } from "./types";
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, Firestore } from "firebase/firestore";
 import { firebaseConfig } from "./firebase-config";
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
+let app: FirebaseApp;
+let db: Firestore;
+
+if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+} else {
+    app = getApp();
+}
+db = getFirestore(app);
+
 
 export async function getBook(isbn: string) {
     try {
