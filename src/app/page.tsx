@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -26,8 +27,17 @@ export default function Home() {
   useEffect(() => {
     const fetchBooks = async () => {
       if (user) {
-        const userBooks = await getUserBooks(user.uid);
-        setBooks(userBooks);
+        try {
+            const userBooks = await getUserBooks(user.uid);
+            setBooks(userBooks);
+        } catch (e) {
+            console.error("Failed to fetch user books:", e);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not load your books. Please try again later.",
+            });
+        }
       }
     };
     if (!loading && !user) {
@@ -35,7 +45,7 @@ export default function Home() {
     } else if (user) {
       fetchBooks(); // Only fetch books if user is logged in
     }
- fetchBooks(); }, [user, loading, router]);
+  }, [user, loading, router, toast]);
 
   if (loading || !user) {
     return <div>Loading...</div>;
