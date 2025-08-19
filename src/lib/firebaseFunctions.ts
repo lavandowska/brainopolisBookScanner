@@ -1,12 +1,13 @@
+
 "use server";
 
 import { Book, UserBook } from "./types";
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { firebaseConfig } from "./firebase-config";
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app, 'bookscan');
+const db = getFirestore(app);
 
 export async function getBook(isbn: string) {
     try {
@@ -29,14 +30,15 @@ export async function saveBook(bookId: string, bookData: Book) {
     }
 }
 
-export async function getUserBooks(userId: string) {
+export async function getUserBooks(userId: string): Promise<Book[]> {
     try {
-        const userBooksRef = db.collection("user-books");
-        const userBooksSnapshot = await userBooksRef.where("userId", "==", userId).get();
+        const userBooksRef = collection(db, "user-books");
+        const q = query(userBooksRef, where("userId", "==", userId));
+        const userBooksSnapshot = await getDocs(q);
 
         const books: Book[] = [];
-        for (const doc of userBooksSnapshot.docs) {
-            const userBook = doc.data() as UserBook;
+        for (const docSnapshot of userBooksSnapshot.docs) {
+            const userBook = docSnapshot.data() as UserBook;
             const bookDocRef = doc(db, "books", userBook.id);
             const bookDocSnap = await getDoc(bookDocRef);
 
@@ -44,12 +46,13 @@ export async function getUserBooks(userId: string) {
                 books.push(bookDocSnap.data() as Book);
             }
         }
-        return books;
+        return books.sort((a, b) => a.title.localeCompare(b.title));
     } catch (e) {
         console.error("Error getting user books: ", e);
     }
     return [];
 }
+
 
 export async function saveUserBook(isbn: string, userId: string) {
     try {
