@@ -74,7 +74,13 @@ export default function Home() {
         description: error,
       });
     } else if (book) {
-      setBooks(prevBooks => [book, ...prevBooks]);
+      setBooks(prevBooks => {
+        // Final check to prevent duplicates from race conditions
+        if (prevBooks.some(b => b.id === book.id)) {
+          return prevBooks;
+        }
+        return [book, ...prevBooks];
+      });
       toast({
         title: "Book Added",
         description: `"${book.title}" has been added to your list.`,
