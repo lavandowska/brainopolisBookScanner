@@ -52,16 +52,17 @@ export default function Home() {
   }
 
   const handleScan = async (isbn: string) => {
+    setIsScanning(true);
     if (books.some(book => book.id === isbn)) {
       toast({
         variant: "destructive",
         title: "Duplicate Book",
         description: "This book is already in your list: " + isbn,
       });
+      setIsScanning(false);
       return;
     }
 
-    setIsScanning(true);
     const { book, error } = await fetchBookData(isbn.replaceAll("\\D", ""), user.uid);
     setIsScanning(false);
 

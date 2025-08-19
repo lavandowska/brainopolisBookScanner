@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -31,6 +32,7 @@ export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) 
             stream.getTracks().forEach(track => track.stop());
             videoRef.current.srcObject = null;
         }
+        setIsProcessing(false);
     }, []);
     
     useEffect(() => {
@@ -47,8 +49,8 @@ export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) 
                     if (result && !isProcessing) {
                         setIsProcessing(true);
                         stopScan();
-                        setIsScannerOpen(false);
                         await onScan(result.getText());
+                        setIsScannerOpen(false);
                     }
                     if (err) {
                         // A NotFoundException is thrown when no barcode is found. We can ignore it.
@@ -84,7 +86,9 @@ export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) 
             setIsScannerOpen(true);
         } else {
             setIsScannerOpen(false);
-            onCancel();
+            if (!isProcessing) {
+              onCancel();
+            }
         }
     }
     
