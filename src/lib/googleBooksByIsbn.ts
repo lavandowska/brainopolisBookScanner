@@ -17,7 +17,7 @@ export async function googleBooksByIsbn(isbn: string, userId: string): Promise<{
   
   const json = await response.json();
   if (!json || !json.items || json.items.length === 0) {
-    return { book: undefined, error: "Unable to fetch book for this ISBN." };
+    return { book: undefined, error: "Unable to fetch book for this ISBN: " + isbn };
   }
 
   const volumeInfo = json.items[0].volumeInfo;

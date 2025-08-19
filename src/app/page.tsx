@@ -124,6 +124,10 @@ export default function Home() {
       setSelectedBooks(new Set(books.map(b => b.id)));
     }
   };
+  
+  const handleScannerCancel = () => {
+    setIsScanning(false);
+  }
 
   const allSelected = selectedBooks.size > 0 && selectedBooks.size === books.length;
 
@@ -132,7 +136,7 @@ export default function Home() {
       <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="space-y-8">
-          <ISBNScanner onScan={handleScan} isScanning={isScanning} />
+          <ISBNScanner onScan={handleScan} isScanning={isScanning} onCancel={handleScannerCancel} />
 
           {books.length > 0 && (
             <div className="space-y-4">

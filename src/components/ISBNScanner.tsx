@@ -13,9 +13,10 @@ import { BrowserMultiFormatReader } from '@zxing/browser';
 interface ISBNScannerProps {
     onScan: (isbn: string) => Promise<void>;
     isScanning: boolean;
+    onCancel: () => void;
 }
 
-export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
+export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) {
     const [isbn, setIsbn] = useState('');
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -44,8 +45,8 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                   codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, async (result, err) => {
                     if (result) {
                         stopScan();
-                        await onScan(result.getText());
                         setIsScannerOpen(false);
+                        await onScan(result.getText());
                     }
                     if (err) {
                         // A NotFoundException is thrown when no barcode is found. We can ignore it.
@@ -62,6 +63,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                   description: 'Please enable camera permissions in your browser settings to use this app.',
                 });
                 setIsScannerOpen(false);
+                onCancel();
               }
             };
         
@@ -73,9 +75,12 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
         return () => {
             stopScan();
         };
-    }, [isScannerOpen, stopScan, toast, onScan]);
+    }, [isScannerOpen, stopScan, toast, onScan, onCancel]);
 
     const handleDialogClose = (open: boolean) => {
+        if (!open) {
+            onCancel();
+        }
         setIsScannerOpen(open);
     }
     
