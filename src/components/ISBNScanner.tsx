@@ -19,6 +19,7 @@ interface ISBNScannerProps {
 export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) {
     const [isbn, setIsbn] = useState('');
     const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const { toast } = useToast();
@@ -43,7 +44,8 @@ export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) 
                   videoRef.current.srcObject = stream;
                   
                   codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, async (result, err) => {
-                    if (result) {
+                    if (result && !isProcessing) {
+                        setIsProcessing(true);
                         stopScan();
                         setIsScannerOpen(false);
                         await onScan(result.getText());
@@ -63,7 +65,6 @@ export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) 
                   description: 'Please enable camera permissions in your browser settings to use this app.',
                 });
                 setIsScannerOpen(false);
-                onCancel();
               }
             };
         
@@ -75,13 +76,16 @@ export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) 
         return () => {
             stopScan();
         };
-    }, [isScannerOpen, stopScan, toast, onScan, onCancel]);
+    }, [isScannerOpen, stopScan, toast, onScan, isProcessing]);
 
-    const handleDialogClose = (open: boolean) => {
-        if (!open) {
+    const handleDialogOpen = (open: boolean) => {
+        if (open) {
+            setIsProcessing(false);
+            setIsScannerOpen(true);
+        } else {
+            setIsScannerOpen(false);
             onCancel();
         }
-        setIsScannerOpen(open);
     }
     
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -124,13 +128,13 @@ export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) 
                                 </>
                             )}
                         </Button>
-                         <Button type="button" variant="outline" onClick={() => setIsScannerOpen(true)} disabled={isScanning}>
+                         <Button type="button" variant="outline" onClick={() => handleDialogOpen(true)} disabled={isScanning}>
                             <Camera className="h-4 w-4" />
                         </Button>
                     </form>
                 </CardContent>
             </Card>
-            <Dialog open={isScannerOpen} onOpenChange={handleDialogClose}>
+            <Dialog open={isScannerOpen} onOpenChange={handleDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Scan ISBN</DialogTitle>
@@ -153,7 +157,7 @@ export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) 
                         )}
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => handleDialogClose(false)}>Cancel</Button>
+                        <Button variant="outline" onClick={() => handleDialogOpen(false)}>Cancel</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
