@@ -45,6 +45,6 @@ export async function fetchBookData(isbn: string, userId: string): Promise<{ boo
     return { book: book };
   } catch (e: any) {
     console.error("Error in fetchBookData: ", e);
-    return { error: "An unexpected error occurred while fetching book data. " + e.message };
+    return { error: `An unexpected error occurred while fetching book data: ${e.message}` };
   }
 }

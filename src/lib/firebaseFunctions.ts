@@ -7,12 +7,14 @@ import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, F
 import { firebaseConfig } from "./firebase-config";
 
 let app: FirebaseApp;
+let db: Firestore;
+
 if (getApps().length === 0) {
     app = initializeApp(firebaseConfig);
 } else {
     app = getApp();
 }
-const db: Firestore = getFirestore(app);
+db = getFirestore(app);
 
 
 export async function getBook(isbn: string) {
