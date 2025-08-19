@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { extractIsbnFromImage } from '@/ai/flows/extract-isbn-from-image';
+import { BrowserMultiFormatReader } from '@zxing/browser';
 
 interface ISBNScannerProps {
     onScan: (isbn: string) => Promise<void>;
@@ -19,11 +19,12 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
     const [isbn, setIsbn] = useState('');
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-    const [isProcessing, setIsProcessing] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const { toast } = useToast();
+    const codeReader = useRef(new BrowserMultiFormatReader());
 
     const stopScan = useCallback(() => {
+        codeReader.current.reset();
         if (videoRef.current?.srcObject) {
             const stream = videoRef.current.srcObject as MediaStream;
             stream.getTracks().forEach(track => track.stop());
@@ -33,13 +34,24 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
     
     useEffect(() => {
         if (isScannerOpen) {
-            const getCameraPermission = async () => {
+            const startScan = async () => {
               try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 setHasCameraPermission(true);
         
                 if (videoRef.current) {
                   videoRef.current.srcObject = stream;
+                  
+                  codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
+                    if (result) {
+                        onScan(result.getText());
+                        setIsScannerOpen(false);
+                    }
+                    if (err) {
+                        // A NotFoundException is thrown when no barcode is found. We can ignore it.
+                        // Other errors will be logged to the console by the library.
+                    }
+                  });
                 }
               } catch (error) {
                 console.error('Error accessing camera:', error);
@@ -53,7 +65,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
               }
             };
         
-            getCameraPermission();
+            startScan();
         } else {
             stopScan();
         }
@@ -61,7 +73,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
         return () => {
             stopScan();
         };
-    }, [isScannerOpen, stopScan, toast]);
+    }, [isScannerOpen, stopScan, toast, onScan]);
 
     const handleDialogClose = (open: boolean) => {
         setIsScannerOpen(open);
@@ -74,35 +86,6 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
             setIsbn('');
         }
     };
-
-    const handleCaptureAndScan = async () => {
-        if (!videoRef.current) return;
-        setIsProcessing(true);
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = videoRef.current.videoWidth;
-        canvas.height = videoRef.current.videoHeight;
-        const context = canvas.getContext('2d');
-        if (context) {
-            context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-            const imageDataUri = canvas.toDataURL('image/jpeg');
-            
-            try {
-                const { isbn: extractedIsbn } = await extractIsbnFromImage({ imageDataUri });
-                if (extractedIsbn) {
-                    await onScan(extractedIsbn);
-                    handleDialogClose(false);
-                } else {
-                    toast({ variant: 'destructive', title: 'Scan Failed', description: 'Could not find an ISBN in the image. Please try again.' });
-                }
-            } catch (error) {
-                 toast({ variant: 'destructive', title: 'Error', description: 'An error occurred during scanning.' });
-                 console.error(error);
-            } finally {
-                setIsProcessing(false);
-            }
-        }
-    }
 
     return (
         <>
@@ -127,7 +110,7 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                             aria-label="Book ISBN"
                         />
                         <Button type="submit" disabled={isScanning || !isbn.trim()} className="min-w-[100px]">
-                            {isScanning && !isScannerOpen ? (
+                            {isScanning ? (
                                 <Loader2 className="animate-spin" />
                             ) : (
                                 <>
@@ -147,11 +130,14 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                     <DialogHeader>
                         <DialogTitle>Scan ISBN</DialogTitle>
                         <DialogDescription>
-                            Point your camera at a book's ISBN code.
+                            Point your camera at the book's barcode.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="relative">
                         <video ref={videoRef} className="w-full aspect-video rounded-md" autoPlay muted playsInline />
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-2/3 h-1/3 border-4 border-red-500 rounded-lg shadow-lg" />
+                        </div>
                         {hasCameraPermission === false && (
                              <Alert variant="destructive">
                                 <AlertTitle>Camera Access Required</AlertTitle>
@@ -160,18 +146,9 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                                 </AlertDescription>
                             </Alert>
                         )}
-                         {isProcessing && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-20">
-                                <Loader2 className="animate-spin text-white h-10 w-10" />
-                            </div>
-                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => handleDialogClose(false)}>Cancel</Button>
-                        <Button onClick={handleCaptureAndScan} disabled={isProcessing || hasCameraPermission !== true}>
-                            {isProcessing ? <Loader2 className="animate-spin" /> : <ScanLine className="mr-2 h-4 w-4"/>}
-                            Scan
-                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
