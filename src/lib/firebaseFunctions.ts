@@ -7,14 +7,12 @@ import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, F
 import { firebaseConfig } from "./firebase-config";
 
 let app: FirebaseApp;
-let db: Firestore;
-
 if (getApps().length === 0) {
     app = initializeApp(firebaseConfig);
 } else {
     app = getApp();
 }
-db = getFirestore(app);
+const db: Firestore = getFirestore(app);
 
 
 export async function getBook(isbn: string) {
@@ -26,6 +24,7 @@ export async function getBook(isbn: string) {
         }
     } catch (e) {
         console.error("Error getting document: ", e);
+        throw new Error("An unexpected response was received from the server.");
     }
     return null;
 }
@@ -35,6 +34,7 @@ export async function saveBook(bookId: string, bookData: Book) {
         await setDoc(doc(db, "books", bookId), bookData, { merge: true });
     } catch (e) {
         console.error("Error adding document: ", e);
+        throw new Error("An unexpected response was received from the server.");
     }
 }
 
@@ -66,5 +66,6 @@ export async function saveUserBook(isbn: string, userId: string) {
         await setDoc(doc(db, "user-books", `${userId}:${isbn}`), {id: isbn, userId: userId});
     } catch (e) {
         console.error("Error adding document: ", e);
+        throw new Error("An unexpected response was received from the server.");
     }
 }
