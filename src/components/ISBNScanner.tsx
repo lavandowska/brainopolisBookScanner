@@ -43,8 +43,9 @@ export function ISBNScanner({ onScan, isScanning }: ISBNScannerProps) {
                   
                   codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, async (result, err) => {
                     if (result) {
-                        setIsScannerOpen(false);
+                        stopScan();
                         await onScan(result.getText());
+                        setIsScannerOpen(false);
                     }
                     if (err) {
                         // A NotFoundException is thrown when no barcode is found. We can ignore it.
