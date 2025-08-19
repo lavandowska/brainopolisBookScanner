@@ -66,15 +66,21 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md"
+                      className="w-full px-3 py-2 border rounded-md text-gray-900"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') loginWithEmailAndPassword(email, password);
+                      }}
               />
             </div>
             <div className="grid gap-2">
               <label htmlFor="password">Password</label>
-              <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-3 py-2 border rounded-md" />
+              <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-3 py-2 border rounded-md text-gray-900"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') loginWithEmailAndPassword(email, password);
+                      }} />
             </div>
             <Button className="w-full" onClick={() => loginWithEmailAndPassword(email, password)} disabled={loading}>Login with Email</Button>
-            
+ 
             {/* REGISTER */}
             <div className="mt-4 text-sm text-center text-gray-600">
               Don't have an account? <a href="/register" className="text-blue-600 hover:underline">Sign up here.</a>

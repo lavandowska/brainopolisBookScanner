@@ -6,7 +6,7 @@ import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 import { firebaseConfig } from "./firebase-config";
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
+const db = getFirestore(app, 'bookscan');
 
 export async function getBook(isbn: string) {
     try {
@@ -20,7 +20,6 @@ export async function getBook(isbn: string) {
     }
     return null;
 }
-
 
 export async function saveBook(bookId: string, bookData: Book) {
     try {

@@ -1,8 +1,16 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode, } from 'react';
-import { onAuthStateChanged, signInWithRedirect, User, GoogleAuthProvider, getRedirectResult } from 'firebase/auth';
-import { auth } from '@/lib/firebase-auth';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { 
+  onAuthStateChanged, 
+  signInWithRedirect, 
+  User, 
+  getRedirectResult, 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut
+} from 'firebase/auth';
+import { auth, provider } from '@/lib/firebase-auth';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
@@ -48,14 +56,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithGoogle = async () => {
     setLoading(true);
-    const provider = new GoogleAuthProvider();
     await signInWithRedirect(auth, provider);
   };
 
   const registerWithEmailAndPassword = async (email: string, password: string) => {
     setLoading(true);
     try {
-      await auth.createUserWithEmailAndPassword(email, password);
+      await createUserWithEmailAndPassword(auth, email, password);
       router.push('/');
     } catch (error) {
       console.error("Error registering with email and password:", error);
@@ -67,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithEmailAndPassword = async (email: string, password: string) => {
     setLoading(true);
     try {
-      await auth.signInWithEmailAndPassword(email, password);
+      await signInWithEmailAndPassword(auth, email, password);
       router.push('/');
     } catch (error) {
       console.error("Error signing in with email and password:", error);
@@ -78,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await auth.signOut();
+      await signOut(auth);
       router.push('/login');
     } catch (error) {
       console.error("Error signing out: ", error);
