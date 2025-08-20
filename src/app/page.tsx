@@ -65,7 +65,7 @@ export default function Home() {
     }
 
     setIsScanning(true);
-    const { book, error } = await fetchBookData(isbn.replaceAll("\\D", ""), user.uid);
+    const { book, error } = await fetchBookData(isbn.replaceAll(/\\D/g, ""), user.uid);
     setIsScanning(false);
     
     if (error) {
@@ -160,7 +160,7 @@ export default function Home() {
         <div className="space-y-8">
           <ISBNScanner onScan={handleScan} isScanning={isScanning} onCancel={handleScannerCancel} userProfile={profile} />
           {profile && (
-            <div className="flex items-center justify-center mt-0 mb-0" style={{"margin-top":0}}>
+            <div className="flex items-center justify-center mt-0 mb-0" style={{"marginTop":0}}>
               <span
                 className={`text-sm my-0 mt-0 mb-0 
                   ${profile.credits < 1 ? 'font-bold text-red-500' : 'text-foreground'}`
