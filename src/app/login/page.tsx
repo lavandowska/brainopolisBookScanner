@@ -48,7 +48,7 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            {/* login with Google Auth */}
+            {/* login with Google Auth 
             <Button className="w-full" onClick={loginWithGoogle} disabled={loading}>
               {loading ? (
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -57,7 +57,7 @@ export default function Login() {
               )}
               Sign in with Google
             </Button>
-            
+            */}
             {/* login with email and password */}
             <div className="grid gap-2">
               <label htmlFor="email">Email</label>

@@ -4,7 +4,6 @@
 import { Book, UserProfile } from "./types";
 import { getAdminDb } from "./firebase-admin";
 import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
 
 const BOOKS_DB = "books";
 const USER_PROFILE = "user_profiles";

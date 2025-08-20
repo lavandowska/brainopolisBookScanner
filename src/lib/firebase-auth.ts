@@ -1,3 +1,4 @@
+/* Initialize Firestore App & GoogleAuthProvider for client-side use */
 "use client";
 
 import { initializeApp, getApps, getApp } from "firebase/app";
@@ -12,6 +13,7 @@ const app = !getApps().length ? initializeApp({
     messagingSenderId: process.env.NEXT_PUBLIC_massagingSenderId,
     appId: process.env.NEXT_PUBLIC_appId
 }) : getApp();
+
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 provider.addScope("https://www.googleapis.com/auth/userinfo.email");

@@ -1,4 +1,4 @@
-
+/* Initialize Admin App & Firestore for ServerSide use */
 import admin from 'firebase-admin';
 
 let adminApp: admin.app.App;

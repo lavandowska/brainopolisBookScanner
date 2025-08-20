@@ -26,18 +26,31 @@ export default function Home() {
   const router = useRouter(); // Initialize router
 
   useEffect(() => {
+    const fetchBooks = async () => {
+      if (user) {
+        try {
+          setBooks(await getUserBooks(user.uid));
+        } catch (e) {
+          console.error("Failed to fetch user books:", e);
+          toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Could not load your books. Please try again later.",
+          });
+        }
+      }
+    }
     const fetchProfile = async () => {
       if (user) {
         try {
             setProfile(await getUserProfile(user.uid));
-            setBooks(await getUserBooks(user.uid));
         } catch (e) {
-            console.error("Failed to fetch user profile:", e);
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Could not load your profile. Please try again later.",
-            });
+          console.error("Failed to fetch user profile:", e);
+          toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Could not load your profile. Please try again later.",
+          });
         }
       }
     };
@@ -45,6 +58,7 @@ export default function Home() {
       router.push('/login');
     } else if (user) {
       fetchProfile(); // Only fetch profile if user is logged in
+      fetchBooks(); //do not tie the two actions together, it may take awhile to fetch all the books
     }
   }, [user, loading, router, toast]);
 
