@@ -13,7 +13,7 @@ import { Download, Trash2, BookX, CheckSquare, XSquare } from "lucide-react";
 import { exportToWooCommerceCsv } from "@/lib/wooCommerceCsv";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { getUserBooks, getUserProfile } from "@/lib/firebaseFunctions";
+import { getUserBooks, getUserProfile, saveUserProfile } from "@/lib/firebaseFunctions";
 
 
 export default function Home() {
@@ -129,6 +129,10 @@ export default function Home() {
 
   const handleDeleteSelected = () => {
     setBooks(prevBooks => prevBooks.filter(book => !selectedBooks.has(book.id)));
+    if (profile) {
+      profile.isbns = profile.isbns.filter(item => !selectedBooks.has(item));
+      saveUserProfile(profile);
+    }
     setSelectedBooks(new Set());
     toast({
         title: "Books Deleted",
