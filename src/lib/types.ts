@@ -16,7 +16,9 @@ export interface Book {
   weight: string;
 }
 
-export interface UserBook {
-  id: string; // ISBN
-  userId: string, 
+export interface UserProfile {
+  userId: string,
+  credits: number,
+  amazonAffId: string, 
+  isbns: string[]
 }

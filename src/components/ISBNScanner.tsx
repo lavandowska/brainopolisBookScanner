@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search, Camera, ScanLine } from 'lucide-react';
@@ -15,9 +16,10 @@ interface ISBNScannerProps {
     onScan: (isbn: string) => Promise<void>;
     isScanning: boolean;
     onCancel: () => void;
+    userProfile: UserProfile;
 }
 
-export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) {
+export function ISBNScanner({ onScan, isScanning, onCancel, userProfile }: ISBNScannerProps) {
     const [isbn, setIsbn] = useState('');
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -122,7 +124,7 @@ export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) 
                             required
                             aria-label="Book ISBN"
                         />
-                        <Button type="submit" disabled={isScanning || !isbn.trim()} className="min-w-[100px]">
+                        <Button type="submit" disabled={isScanning || !isbn.trim() || (userProfile?.credits < 1)} className="min-w-[100px]">
                             {isScanning ? (
                                 <Loader2 className="animate-spin" />
                             ) : (
@@ -132,7 +134,7 @@ export function ISBNScanner({ onScan, isScanning, onCancel }: ISBNScannerProps) 
                                 </>
                             )}
                         </Button>
-                         <Button type="button" variant="outline" onClick={() => handleDialogOpen(true)} disabled={isScanning}>
+                         <Button type="button" variant="outline" onClick={() => handleDialogOpen(true)} disabled={isScanning || (userProfile?.credits < 1)}>
                             <Camera className="h-4 w-4" />
                         </Button>
                     </form>

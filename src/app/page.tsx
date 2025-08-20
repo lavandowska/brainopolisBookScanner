@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Book } from "@/lib/types";
+import { Book, UserProfile } from "@/lib/types";
 import { fetchBookData } from "@/lib/books";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
@@ -13,10 +13,11 @@ import { Download, Trash2, BookX, CheckSquare, XSquare } from "lucide-react";
 import { exportToWooCommerceCsv } from "@/lib/wooCommerceCsv";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { getUserBooks } from "@/lib/firebaseFunctions";
+import { getUserBooks, getUserProfile } from "@/lib/firebaseFunctions";
 
 
 export default function Home() {
+  const [profile, setProfile] = useState<UserProfile>();
   const [books, setBooks] = useState<Book[]>([]);
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
   const [isScanning, setIsScanning] = useState(false);
@@ -25,17 +26,17 @@ export default function Home() {
   const router = useRouter(); // Initialize router
 
   useEffect(() => {
-    const fetchBooks = async () => {
+    const fetchProfile = async () => {
       if (user) {
         try {
-            const userBooks = await getUserBooks(user.uid);
-            setBooks(userBooks);
+            setProfile(await getUserProfile(user.uid));
+            setBooks(await getUserBooks(user.uid));
         } catch (e) {
-            console.error("Failed to fetch user books:", e);
+            console.error("Failed to fetch user profile:", e);
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "Could not load your books. Please try again later.",
+                description: "Could not load your profile. Please try again later.",
             });
         }
       }
@@ -43,7 +44,7 @@ export default function Home() {
     if (!loading && !user) {
       router.push('/login');
     } else if (user) {
-      fetchBooks(); // Only fetch books if user is logged in
+      fetchProfile(); // Only fetch profile if user is logged in
     }
   }, [user, loading, router, toast]);
 
@@ -65,6 +66,9 @@ export default function Home() {
 
     const { book, error } = await fetchBookData(isbn.replaceAll("\\D", ""), user.uid);
     setIsScanning(false);
+    if (books.some(book => book.id === isbn)) {
+      return;
+    }
 
     if (error) {
       console.log(error);
@@ -151,9 +155,18 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
-      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8 pt-0">
         <div className="space-y-8">
-          <ISBNScanner onScan={handleScan} isScanning={isScanning} onCancel={handleScannerCancel} />
+          <ISBNScanner onScan={handleScan} isScanning={isScanning} onCancel={handleScannerCancel} userProfile={profile} />
+          {profile && (
+            <div className="flex items-center justify-center mt-0 mb-0" style={{"margin-top":0}}>
+              <span
+                className={`text-sm my-0 mt-0 mb-0 
+                  ${profile.credits < 1 ? 'font-bold text-red-500' : 'text-foreground'}`
+                }
+              >Credits Remaining: {profile.credits}</span>
+            </div>
+          )}
 
           {books.length > 0 && (
             <div className="space-y-4">
