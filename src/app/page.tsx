@@ -52,24 +52,22 @@ export default function Home() {
     return <div>Loading...</div>;
   }
 
-  const handleScan = async (isbn: string) => {
-    setIsScanning(true);
+  const handleScan = async (isbn: string): Promise<{error?: string}> => {
     if (books.some(book => book.id === isbn)) {
+      const errorMsg = "This book is already in your list: " + isbn;
       toast({
         variant: "destructive",
         title: "Duplicate Book",
-        description: "This book is already in your list: " + isbn,
+        description: errorMsg,
       });
       setIsScanning(false);
-      return;
+      return { error: errorMsg };
     }
 
+    setIsScanning(true);
     const { book, error } = await fetchBookData(isbn.replaceAll("\\D", ""), user.uid);
     setIsScanning(false);
-    if (books.some(book => book.id === isbn)) {
-      return;
-    }
-
+    
     if (error) {
       console.log(error);
       toast({
@@ -77,6 +75,7 @@ export default function Home() {
         title: "Error",
         description: error,
       });
+      return { error };
     } else if (book) {
       setBooks(prevBooks => {
         // Final check to prevent duplicates from race conditions
@@ -91,6 +90,7 @@ export default function Home() {
       });
       setProfile(await getUserProfile(user.uid));
     }
+    return {};
   };
 
   const handleSelectionChange = (bookId: string, isSelected: boolean) => {

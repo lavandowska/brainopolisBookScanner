@@ -13,7 +13,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 
 interface ISBNScannerProps {
-    onScan: (isbn: string) => Promise<void>;
+    onScan: (isbn: string) => Promise<{error?: string}>;
     isScanning: boolean;
     onCancel: () => void;
     userProfile: UserProfile;
@@ -51,8 +51,12 @@ export function ISBNScanner({ onScan, isScanning, onCancel, userProfile }: ISBNS
                     if (result && !isProcessing) {
                         setIsProcessing(true);
                         stopScan();
-                        await onScan(result.getText());
-                        setIsScannerOpen(false);
+                        const { error } = await onScan(result.getText());
+                        if (!error) {
+                            setIsScannerOpen(false);
+                        } else {
+                            setIsProcessing(false); // Ready for another scan attempt
+                        }
                     }
                     if (err) {
                         // A NotFoundException is thrown when no barcode is found. We can ignore it.
