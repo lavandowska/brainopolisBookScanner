@@ -89,6 +89,7 @@ export default function Home() {
         title: "Book Added",
         description: `"${book.title}" has been added to your list.`,
       });
+      setProfile(await getUserProfile(user.uid));
     }
   };
 

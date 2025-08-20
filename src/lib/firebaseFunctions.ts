@@ -50,7 +50,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
     } catch (e) {
         console.log("Could not get profile, it may not have been created yet");
     }
-    return {userId: userId, credits: 0, amazonAffId: "", isbns: []};
+    return await createUserProfile(userId);
 }
 
 export async function getUserBooks(userId: string): Promise<Book[]> {
@@ -100,7 +100,7 @@ export async function saveUserBook(isbn: string, userId: string) {
     }
 }
 
-export async function createUserProfile(userId: string) {
+export async function createUserProfile(userId: string): Promise<UserProfile> {
     const docRef = getAdminDb().collection(USER_PROFILE).doc(userId);
     const defaultProfile: UserProfile = {
         userId: userId,
@@ -113,13 +113,6 @@ export async function createUserProfile(userId: string) {
     } catch (e) {
         throw new Error("Unable to create UserProfile.");
     }
+    return defaultProfile;
 }
-exports.createUserProfileOnAuthCreate = functions.auth.user().onCreate(async (user) => {
-  try {
-    await createUserProfile(user.uid);
-    console.log(`User profile created for user: ${user.uid}`);
-  } catch (error) {
-    console.error(`Error creating user profile for user: ${user.uid}`, error);
-  }
-});
 
