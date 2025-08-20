@@ -41,10 +41,27 @@ export default function Login() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">      
       <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
+        <CardHeader className="text-center" style={{"padding-bottom": 12}}>
           <BookOpen className="mx-auto h-12 w-12 text-primary" />
           <CardTitle className="mt-4">Welcome to BookLook</CardTitle>
-          <CardDescription>Sign in to continue</CardDescription>
+          <CardContent className="text-sm" style={{"padding-bottom": 4}}>
+            <p className="mt-1">The goal of BookLook is to make it easy for you to scan books
+            into your inventory.</p>
+            <p className="mt-1">You can manually enter ISBN values, or scan the UPC code-box 
+            (usually on the back of the book).
+            </p>
+            <p className="mt-1">Once you've completed scanning your inventory, you can then choose 
+              which to export.  Currently only the WooCommerce import format is supported.
+            </p>
+            <p className="mt-1">You'll need an account to track your inventory, future goals are to support OAuth 
+              via Google and Facebook.
+            </p>
+            {/* REGISTER */}
+            <div className="mt-4 text-sm text-center text-gray-600">
+              Don't have an account? <a href="/register" className="text-blue-600 hover:underline">Sign up here.</a>
+            </div>
+          </CardContent>
+          <CardDescription className="mt-0">Sign in to continue</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
@@ -66,7 +83,7 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-md text-gray-900"
+                      className="w-full px-2 py-1 text-sm border rounded-md text-gray-900"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') loginWithEmailAndPassword(email, password);
                       }}
@@ -74,7 +91,7 @@ export default function Login() {
             </div>
             <div className="grid gap-2">
               <label htmlFor="password">Password</label>
-              <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-3 py-2 border rounded-md text-gray-900"
+              <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-2 py-1 text-sm border rounded-md text-gray-900"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') loginWithEmailAndPassword(email, password);
                       }} />
