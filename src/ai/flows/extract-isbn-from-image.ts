@@ -59,9 +59,6 @@ export async function extractIsbnFromImage(
   const result = await extractIsbnFlow(input);
   if (result.isbn) {
     result.isbn = result.isbn.replace(/[-\s]/g, '');
-    console.log("Found ISBN: " + result.isbn);
-  } else {
-    console.log("No ISBN Found: " + result);
   }
   return result;
 }

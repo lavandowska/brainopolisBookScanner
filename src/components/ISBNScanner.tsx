@@ -2,15 +2,13 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search, Camera, ScanLine, Wand2 } from 'lucide-react';
+import { Loader2, Search, Camera, ScanLine } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { BrowserMultiFormatReader } from '@zxing/browser';
 import { extractIsbnFromImage } from '@/ai/flows/extract-isbn-from-image';
 
 interface ISBNScannerProps {
@@ -23,14 +21,10 @@ interface ISBNScannerProps {
 export function ISBNScanner({ onScan, isScanning, onCancel, userProfile }: ISBNScannerProps) {
     const [isbn, setIsbn] = useState('');
     const [isScannerOpen, setIsScannerOpen] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [isAiScanning, setIsAiScanning] = useState(false);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-    const [showAiButton, setShowAiButton] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const { toast } = useToast();
-    const codeReader = useRef(new BrowserMultiFormatReader());
-    const aiButtonTimer = useRef<NodeJS.Timeout | null>(null);
 
     const stopScan = useCallback(() => {
         if (videoRef.current?.srcObject) {
@@ -38,47 +32,17 @@ export function ISBNScanner({ onScan, isScanning, onCancel, userProfile }: ISBNS
             stream.getTracks().forEach(track => track.stop());
             videoRef.current.srcObject = null;
         }
-        setIsProcessing(false);
-        if (aiButtonTimer.current) {
-            clearTimeout(aiButtonTimer.current);
-            aiButtonTimer.current = null;
-        }
-        setShowAiButton(false);
     }, []);
     
     useEffect(() => {
         if (isScannerOpen) {
-            const startScan = async () => {
+            const getCameraPermission = async () => {
               try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 setHasCameraPermission(true);
         
                 if (videoRef.current) {
                   videoRef.current.srcObject = stream;
-                  
-                  aiButtonTimer.current = setTimeout(() => {
-                      setShowAiButton(true);
-                  }, 3000);
-
-                  codeReader.current.decodeFromVideoDevice(undefined, videoRef.current, async (result, err) => {
-                    if (result && !isProcessing) {
-                        const code = result.getText();
-                        const isIsbn = /^\d{10}$|^\d{13}$/.test(code.replace(/[-\s]/g, ''));
-                        if (!isIsbn) {
-                            // Not a valid ISBN format, ignore and keep scanning
-                            return;
-                        }
-
-                        setIsProcessing(true);
-                        stopScan();
-                        const { error } = await onScan(code);
-                        if (!error) {
-                            setIsScannerOpen(false);
-                        } else {
-                            setIsProcessing(false); // Ready for another scan attempt
-                        }
-                    }
-                  });
                 }
               } catch (error) {
                 console.error('Error accessing camera:', error);
@@ -92,7 +56,7 @@ export function ISBNScanner({ onScan, isScanning, onCancel, userProfile }: ISBNS
               }
             };
         
-            startScan();
+            getCameraPermission();
         } else {
             stopScan();
         }
@@ -100,56 +64,10 @@ export function ISBNScanner({ onScan, isScanning, onCancel, userProfile }: ISBNS
         return () => {
             stopScan();
         };
-    }, [isScannerOpen, stopScan, toast, onScan, isProcessing]);
+    }, [isScannerOpen, stopScan, toast]);
 
-    const handleAiScan = async () => {
-        if (!videoRef.current) return;
-        setIsAiScanning(true);
-        setShowAiButton(false);
-
-        const canvas = document.createElement('canvas');
-        canvas.width = videoRef.current.videoWidth;
-        canvas.height = videoRef.current.videoHeight;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not capture image from camera.' });
-            setIsAiScanning(false);
-            return;
-        }
-        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        const imageDataUri = canvas.toDataURL('image/jpeg');
-
-        try {
-            const result = await extractIsbnFromImage({ imageDataUri });
-            if (result.isbn) {
-                stopScan();
-                const { error } = await onScan(result.isbn);
-                 if (!error) {
-                    setIsScannerOpen(false);
-                }
-            } else {
-                toast({ variant: 'destructive', title: 'No ISBN Found', description: 'Could not find an ISBN in the image. Please try again.' });
-            }
-        } catch (e) {
-            console.error("AI Scan Error:", e);
-            toast({ variant: 'destructive', title: 'AI Scan Failed', description: 'An unexpected error occurred during the AI scan.' });
-        } finally {
-            setIsAiScanning(false);
-            setIsProcessing(false);
-        }
-    };
-
-
-    const handleDialogOpen = (open: boolean) => {
-        if (open) {
-            setIsProcessing(false);
-            setIsScannerOpen(true);
-        } else {
-            setIsScannerOpen(false);
-            if (!isProcessing) {
-              onCancel();
-            }
-        }
+    const handleDialogClose = (open: boolean) => {
+        setIsScannerOpen(open);
     }
     
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -159,6 +77,35 @@ export function ISBNScanner({ onScan, isScanning, onCancel, userProfile }: ISBNS
             setIsbn('');
         }
     };
+
+    const handleCaptureAndScan = async () => {
+        if (!videoRef.current) return;
+        setIsProcessing(true);
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        const context = canvas.getContext('2d');
+        if (context) {
+            context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+            const imageDataUri = canvas.toDataURL('image/jpeg');
+            
+            try {
+                const { isbn: extractedIsbn } = await extractIsbnFromImage({ imageDataUri });
+                if (extractedIsbn) {
+                    await onScan(extractedIsbn);
+                    handleDialogClose(false);
+                } else {
+                    toast({ variant: 'destructive', title: 'Scan Failed', description: 'Could not find an ISBN in the image. Please try again.' });
+                }
+            } catch (error) {
+                 toast({ variant: 'destructive', title: 'Error', description: 'An error occurred during scanning.' });
+                 console.error(error);
+            } finally {
+                setIsProcessing(false);
+            }
+        }
+    }
 
     return (
         <>
@@ -192,13 +139,13 @@ export function ISBNScanner({ onScan, isScanning, onCancel, userProfile }: ISBNS
                                 </>
                             )}
                         </Button>
-                         <Button type="button" variant="outline" onClick={() => handleDialogOpen(true)} disabled={isScanning || (userProfile?.credits < 1)}>
+                         <Button type="button" variant="outline" onClick={() => setIsScannerOpen(true)} disabled={isScanning || (userProfile?.credits < 1)}>
                             <Camera className="h-4 w-4" />
                         </Button>
                     </form>
                 </CardContent>
             </Card>
-            <Dialog open={isScannerOpen} onOpenChange={handleDialogOpen}>
+            <Dialog open={isScannerOpen} onOpenChange={handleDialogClose}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Scan ISBN</DialogTitle>
@@ -219,21 +166,18 @@ export function ISBNScanner({ onScan, isScanning, onCancel, userProfile }: ISBNS
                                 </AlertDescription>
                             </Alert>
                         )}
-                    </div>
-                    <DialogFooter className="sm:justify-between gap-2">
-                        <div className="flex-grow">
-                        {(showAiButton || isAiScanning) && (
-                            <Button variant="outline" onClick={handleAiScan} disabled={isAiScanning || isProcessing}>
-                                {isAiScanning ? (
-                                    <Loader2 className="animate-spin mr-2" />
-                                ) : (
-                                    <Wand2 className="mr-2" />
-                                )}
-                                Find ISBN with AI
-                            </Button>
+                        {isProcessing && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-20">
+                                <Loader2 className="animate-spin text-white h-10 w-10" />
+                            </div>
                         )}
-                        </div>
-                        <Button variant="outline" onClick={() => handleDialogOpen(false)}>Cancel</Button>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => handleDialogClose(false)}>Cancel</Button>
+                        <Button onClick={handleCaptureAndScan} disabled={isProcessing || hasCameraPermission !== true}>
+                            {isProcessing ? <Loader2 className="animate-spin" /> : <ScanLine className="mr-2 h-4 w-4"/>}
+                            Scan
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
