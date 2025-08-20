@@ -29,7 +29,6 @@ export function ISBNScanner({ onScan, isScanning, onCancel, userProfile }: ISBNS
     const codeReader = useRef(new BrowserMultiFormatReader());
 
     const stopScan = useCallback(() => {
-        codeReader.current.reset();
         if (videoRef.current?.srcObject) {
             const stream = videoRef.current.srcObject as MediaStream;
             stream.getTracks().forEach(track => track.stop());
