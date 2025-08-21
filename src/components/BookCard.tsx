@@ -24,27 +24,26 @@ export function BookCard({ book, isSelected, onSelectionChange, onDescriptionEnh
       <div className="w-full flex flex-col overflow-hidden">
         <ScrollArea className="flex-grow">
             <div className="flex flex-col h-full pr-2">
-                <CardHeader className="py-2 px-4">
-                <CardTitle className="text-base">{book.title}</CardTitle>
-                <CardDescription className="text-xs">by {book.authors?.join(', ')}</CardDescription>
+                <CardHeader className="py-2 px-1">
+                <CardTitle className="text-base">{book.title} by {book.authors?.join(', ')}</CardTitle>
                 </CardHeader>
-                <CardContent className="flex-grow p-4 pt-0 space-y-2">
-                <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="item-1">
-                    <AccordionTrigger className="text-xs py-1">Description</AccordionTrigger>
-                    <AccordionContent className="space-y-1">
-                        <p className="text-xs text-muted-foreground">{book.description}</p>
-                    </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
-                
-                <div className="flex flex-wrap gap-1">
-                    {book.genre?.map(g => <Badge key={g} variant="secondary" className="text-xs px-1.5 py-0.5">{g}</Badge>)}
-                </div>
+                <CardContent className="flex-grow p-1 px-2 pt-0 space-y-1">
+                  <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="item-1">
+                        <AccordionTrigger className="text-xs py-0">Description</AccordionTrigger>
+                        <AccordionContent className="pb-0">
+                            <p className="text-xs text-muted-foreground">{book.description}</p>
+                        </AccordionContent>
+                      </AccordionItem>
+                  </Accordion>
+                  
+                  <div className="flex flex-wrap gap-1 text-xs">
+                      Genre(s):{book.genre?.map(g => <Badge key={g} variant="secondary" className="text-xs px-1.5 py-0.0">{g}</Badge>)}
+                  </div>
                 </CardContent>
-                <CardFooter className="flex justify-between items-center py-2 px-4 mt-auto">
-                <div className="text-xs text-muted-foreground">ASIN: {book.asin}</div>
-                <div className="text-sm font-bold text-primary">${book.price?.toFixed(2)}</div>
+                <CardFooter className="flex justify-between items-center p-1 py-0 px-2 mt-auto">
+                  <div className="text-xs text-muted-foreground">ASIN: {book.asin}</div>
+                  <div className="text-sm font-bold text-primary">${book.price?.toFixed(2)}</div>
                 </CardFooter>
             </div>
         </ScrollArea>
