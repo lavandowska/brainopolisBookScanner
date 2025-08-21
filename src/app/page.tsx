@@ -14,6 +14,7 @@ import { exportToWooCommerceCsv } from "@/lib/wooCommerceCsv";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { getUserBooks, saveUserIsbns, getUserProfile } from "@/lib/firebaseFunctions";
+import { User } from "firebase/auth";
 
 
 export default function Home() {
@@ -29,7 +30,7 @@ export default function Home() {
     const fetchBooks = async () => {
       if (user) {
         try {
-          setBooks(await getUserBooks(user.email));
+          setBooks(await getUserBooks(userIdentifier(user)));
         } catch (e) {
           console.error("Failed to fetch user books:", e);
           toast({
@@ -43,7 +44,7 @@ export default function Home() {
     const fetchProfile = async () => {
       if (user) {
         try {
-            setProfile(await getUserProfile(user.email));
+            setProfile(await getUserProfile(userIdentifier(user)));
         } catch (e) {
           console.error("Failed to fetch user profile:", e);
           toast({
@@ -79,7 +80,7 @@ export default function Home() {
     }
 
     setIsScanning(true);
-    const { book, error } = await fetchBookData(isbn.replaceAll(/\\D/g, ""), user.email);
+    const { book, error } = await fetchBookData(isbn.replaceAll(/\\D/g, ""), userIdentifier(user));
     setIsScanning(false);
     
     if (error) {
@@ -102,7 +103,7 @@ export default function Home() {
         title: "Book Added",
         description: `"${book.title}" has been added to your list.`,
       });
-      setProfile(await getUserProfile(user.email));
+      setProfile(await getUserProfile(userIdentifier(user)));
     }
     return {};
   };
@@ -131,7 +132,7 @@ export default function Home() {
     setBooks(prevBooks => prevBooks.filter(book => !selectedBooks.has(book.id)));
     if (profile) {
       profile.isbns = profile.isbns.filter(item => !selectedBooks.has(item));
-      saveUserIsbns(user.email, profile.isbns);
+      saveUserIsbns(userIdentifier(user), profile.isbns);
     }
     setSelectedBooks(new Set());
     toast({
@@ -236,3 +237,9 @@ export default function Home() {
     </div>
   );
 }
+
+/* The code complains that user.email may be null. Unlikely, but we'll protect by using user.uid just in case */
+function userIdentifier(user: User): string {
+  return user.email || user.uid;
+}
+
