@@ -13,7 +13,7 @@ import { Download, Trash2, BookX, CheckSquare, XSquare } from "lucide-react";
 import { exportToWooCommerceCsv } from "@/lib/wooCommerceCsv";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { getUserBooks, getUserProfile, saveUserProfile } from "@/lib/firebaseFunctions";
+import { getUserBooks, saveUserIsbns, getUserProfile } from "@/lib/firebaseFunctions";
 
 
 export default function Home() {
@@ -29,7 +29,7 @@ export default function Home() {
     const fetchBooks = async () => {
       if (user) {
         try {
-          setBooks(await getUserBooks(user.uid));
+          setBooks(await getUserBooks(user.email));
         } catch (e) {
           console.error("Failed to fetch user books:", e);
           toast({
@@ -43,7 +43,7 @@ export default function Home() {
     const fetchProfile = async () => {
       if (user) {
         try {
-            setProfile(await getUserProfile(user.uid));
+            setProfile(await getUserProfile(user.email));
         } catch (e) {
           console.error("Failed to fetch user profile:", e);
           toast({
@@ -79,7 +79,7 @@ export default function Home() {
     }
 
     setIsScanning(true);
-    const { book, error } = await fetchBookData(isbn.replaceAll(/\\D/g, ""), user.uid);
+    const { book, error } = await fetchBookData(isbn.replaceAll(/\\D/g, ""), user.email);
     setIsScanning(false);
     
     if (error) {
@@ -102,7 +102,7 @@ export default function Home() {
         title: "Book Added",
         description: `"${book.title}" has been added to your list.`,
       });
-      setProfile(await getUserProfile(user.uid));
+      setProfile(await getUserProfile(user.email));
     }
     return {};
   };
@@ -131,7 +131,7 @@ export default function Home() {
     setBooks(prevBooks => prevBooks.filter(book => !selectedBooks.has(book.id)));
     if (profile) {
       profile.isbns = profile.isbns.filter(item => !selectedBooks.has(item));
-      saveUserProfile(profile);
+      saveUserIsbns(user.email, profile.isbns);
     }
     setSelectedBooks(new Set());
     toast({

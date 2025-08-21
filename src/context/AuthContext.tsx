@@ -4,12 +4,11 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { 
   onAuthStateChanged,
   signInWithPopup,
-  signInWithRedirect,
   getRedirectResult,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  GoogleAuthProvider
+  User
 } from 'firebase/auth';
 import { auth, provider } from '@/lib/firebase-auth';
 import { useRouter } from 'next/navigation';

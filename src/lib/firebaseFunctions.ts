@@ -39,9 +39,9 @@ export async function saveBook(bookId: string, bookData: Book) {
     }
 }
 
-export async function getUserProfile(userId: string): Promise<UserProfile> {
+export async function getUserProfile(userEmail: string): Promise<UserProfile> {
     try {
-        const docRef = getAdminDb().collection(USER_PROFILE).doc(userId);
+        const docRef = getAdminDb().collection(USER_PROFILE).doc(userEmail);
         const docSnap = await docRef.get();
         if (docSnap.exists) {
             return docSnap.data() as UserProfile;
@@ -49,12 +49,12 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
     } catch (e) {
         console.log("Could not get profile, it may not have been created yet");
     }
-    return await createUserProfile(userId);
+    return await createUserProfile(userEmail);
 }
 
-export async function getUserBooks(userId: string): Promise<Book[]> {
+export async function getUserBooks(userEmail: string): Promise<Book[]> {
     try {
-        const userProfile = await getUserProfile(userId);
+        const userProfile = await getUserProfile(userEmail);
 
         const bookIds = userProfile.isbns;
         if (bookIds.length === 0) {
@@ -74,7 +74,14 @@ export async function getUserBooks(userId: string): Promise<Book[]> {
     return [];
 }
 
-export async function saveUserProfile(userProfile: UserProfile) {
+export async function saveUserIsbns(userEmail: string, isbns: string[]) {
+    const userProfile = await getUserProfile(userEmail);
+    userProfile.isbns = isbns;
+    await saveUserProfile(userProfile);
+}
+
+// do not export this - exposes it to FE where the 'credits' could be modified
+async function saveUserProfile(userProfile: UserProfile) {
     const docRef = getAdminDb().collection(USER_PROFILE).doc(userProfile.userId);
     try {
         // try fetching book, on error add new book
@@ -85,8 +92,8 @@ export async function saveUserProfile(userProfile: UserProfile) {
     }
 }
 
-export async function saveUserBook(isbn: string, userId: string) {
-    const userProfile = await getUserProfile(userId);
+export async function saveUserBook(isbn: string, userEmail: string) {
+    const userProfile = await getUserProfile(userEmail);
     if (userProfile.isbns.includes(isbn)) {
         return;
     }
@@ -99,10 +106,10 @@ export async function saveUserBook(isbn: string, userId: string) {
     }
 }
 
-export async function createUserProfile(userId: string): Promise<UserProfile> {
-    const docRef = getAdminDb().collection(USER_PROFILE).doc(userId);
+export async function createUserProfile(userEmail: string): Promise<UserProfile> {
+    const docRef = getAdminDb().collection(USER_PROFILE).doc(userEmail);
     const defaultProfile: UserProfile = {
-        userId: userId,
+        userId: userEmail,
         credits: 5, // Default credits
         amazonAffId: "",
         isbns: []

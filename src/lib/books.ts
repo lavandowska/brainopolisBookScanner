@@ -6,7 +6,7 @@ import { getBook, saveBook, saveUserBook } from "./firebaseFunctions";
 import { googleBooksByIsbn } from "./googleBooksByIsbn";
 import { booksRunByIsbn } from "./booksRunByIsbn";
 
-export async function fetchBookData(isbn: string, userId: string): Promise<{ book?: Book, error?: string }> {
+export async function fetchBookData(isbn: string, userEmail: string): Promise<{ book?: Book, error?: string }> {
   try {
     if (isbn.length < 10 || isbn.length > 13) {
       return { error: "Invalid ISBN." };
@@ -16,11 +16,11 @@ export async function fetchBookData(isbn: string, userId: string): Promise<{ boo
     const savedBook = await getBook(isbn);
 
     if (savedBook != null) {
-      await saveUserBook(isbn, userId);
+      await saveUserBook(isbn, userEmail);
       return { book: savedBook };
     }
 
-    var { book, error } = await googleBooksByIsbn(isbn, userId);
+    var { book, error } = await googleBooksByIsbn(isbn, userEmail);
 
     if (error) {
       return { error: error };    
@@ -41,7 +41,7 @@ export async function fetchBookData(isbn: string, userId: string): Promise<{ boo
     }
     // Save the book to Firebase
     await saveBook(book.id, book);
-    await saveUserBook(book.id, userId);  
+    await saveUserBook(book.id, userEmail);  
     
     return { book: book };
   } catch (e: any) {
