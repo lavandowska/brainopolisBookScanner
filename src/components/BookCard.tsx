@@ -20,20 +20,8 @@ export function BookCard({ book, isSelected, onSelectionChange, onDescriptionEnh
   const { toast } = useToast();
 
   return (
-    <Card className="flex flex-row overflow-hidden transition-all duration-300 hover:shadow-lg relative rounded-lg h-36">
-      <div className="relative w-1/4">
-        <a href={`https://books.google.com/books?vid=${book.id}`} target="_blank" rel="noopener noreferrer">
-         <Image
-          src={book.imageUrl}
-          alt={`Book cover for ${book.title}`}
-          width={80}
-          height={120}
-          className="object-cover w-full h-full"
-          data-ai-hint={book.imageHint}
-        />
-        </a>
-      </div>
-      <div className="w-3/4 flex flex-col overflow-hidden">
+    <Card className="flex flex-row overflow-hidden transition-all duration-300 hover:shadow-lg relative rounded-lg h-auto">
+      <div className="w-full flex flex-col overflow-hidden">
         <ScrollArea className="flex-grow">
             <div className="flex flex-col h-full pr-2">
                 <CardHeader className="py-2 px-4">

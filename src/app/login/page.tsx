@@ -41,12 +41,11 @@ export default function Login() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">      
       <Card className="w-full max-w-sm">
-        <CardHeader className="text-center" style={{"padding-bottom": 12}}>
+        <CardHeader className="text-center" style={{"paddingBottom": 12}}>
           <BookOpen className="mx-auto h-12 w-12 text-primary" />
-          <CardTitle className="mt-4">Welcome to BookLook</CardTitle>
-          <CardContent className="text-sm" style={{"padding-bottom": 4}}>
-            <p className="mt-1">The goal of BookLook is to make it easy for you to scan books
-            into your inventory.</p>
+          <CardTitle className="mt-4">Welcome to Book Look</CardTitle>
+          <CardContent className="text-sm" style={{"paddingBottom": 4}}>
+            <p className="mt-1">Book Look wants to make it easy to create your inventory.</p>
             <p className="mt-1">You can manually enter ISBN values, or scan the UPC code-box 
             (usually on the back of the book).
             </p>
@@ -65,7 +64,7 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            {/* login with Google Auth 
+            {/* login with Google Auth */}
             <Button className="w-full" onClick={loginWithGoogle} disabled={loading}>
               {loading ? (
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -74,7 +73,7 @@ export default function Login() {
               )}
               Sign in with Google
             </Button>
-            */}
+            
             {/* login with email and password */}
             <div className="grid gap-2">
               <label htmlFor="email">Email</label>

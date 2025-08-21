@@ -2,13 +2,14 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { 
-  onAuthStateChanged, 
-  signInWithRedirect, 
-  User, 
-  getRedirectResult, 
+  onAuthStateChanged,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  GoogleAuthProvider
 } from 'firebase/auth';
 import { auth, provider } from '@/lib/firebase-auth';
 import { useRouter } from 'next/navigation';
@@ -31,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("onAuthStateChanged user=" + user);
       setUser(user);
       setLoading(false);
     });
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Handle the redirect result
     getRedirectResult(auth)
       .then((result) => {
+        console.log("getRedirectResult result= " + result);
         if (result) {
           // This is the signed-in user
           const user = result.user;
@@ -51,12 +54,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       });
 
+
     return () => unsubscribe();
-  }, [router]);
+}, [router]);
 
   const loginWithGoogle = async () => {
     setLoading(true);
-    await signInWithRedirect(auth, provider);
+    await signInWithGoogle();
+  };
+  const signInWithGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      // The signed-in user info.
+      const user = result.user;
+      setUser(user);
+      setLoading(false);
+    } catch (error) {
+      // Handle Errors here.
+      // The email of the user's account used.
+      const email = error.customData?.email;
+ 
+      console.log("auth error " + error.code + ", " + error.message + ", " + email);
+    }
   };
 
   const registerWithEmailAndPassword = async (email: string, password: string) => {
