@@ -17,7 +17,6 @@ export interface Book {
 }
 
 export interface UserProfile {
-  userId: string,
   credits: number,
   amazonAffId: string, 
   isbns: string[]

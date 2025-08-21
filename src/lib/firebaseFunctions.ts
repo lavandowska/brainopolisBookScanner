@@ -109,7 +109,6 @@ export async function saveUserBook(isbn: string, userEmail: string) {
 export async function createUserProfile(userEmail: string): Promise<UserProfile> {
     const docRef = getAdminDb().collection(USER_PROFILE).doc(userEmail);
     const defaultProfile: UserProfile = {
-        userId: userEmail,
         credits: 5, // Default credits
         amazonAffId: "",
         isbns: []

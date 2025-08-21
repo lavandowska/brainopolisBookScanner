@@ -25,7 +25,9 @@ export function BookCard({ book, isSelected, onSelectionChange, onDescriptionEnh
         <ScrollArea className="flex-grow">
             <div className="flex flex-col h-full pr-2">
                 <CardHeader className="py-2 px-1">
-                <CardTitle className="text-base">{book.title} by {book.authors?.join(', ')}</CardTitle>
+                <CardTitle className="text-base">{book.title} 
+                  <span className="text-xs px-2">by {book.authors?.join(', ')}</span>
+                </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-grow p-1 px-2 pt-0 space-y-1">
                   <Accordion type="single" collapsible className="w-full">
@@ -42,7 +44,8 @@ export function BookCard({ book, isSelected, onSelectionChange, onDescriptionEnh
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between items-center p-1 py-0 px-2 mt-auto">
-                  <div className="text-xs text-muted-foreground">ASIN: {book.asin}</div>
+                <div className="text-xs text-muted-foreground">ISBN: {book.id || book.isbn10}</div>
+                  {/* <div className="text-xs text-muted-foreground">ASIN: {book.asin}</div> */}
                   <div className="text-sm font-bold text-primary">${book.price?.toFixed(2)}</div>
                 </CardFooter>
             </div>
@@ -51,6 +54,7 @@ export function BookCard({ book, isSelected, onSelectionChange, onDescriptionEnh
             <Checkbox
             checked={isSelected}
             onCheckedChange={(checked) => onSelectionChange(book.id, !!checked)}
+            title = {book.id}
             aria-label={`Select book ${book.title}`}
             className="bg-white/80 backdrop-blur-sm"
             />
