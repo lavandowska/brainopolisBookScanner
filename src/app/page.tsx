@@ -9,6 +9,7 @@ import { Header } from "@/components/Header";
 import { ISBNScanner } from "@/components/ISBNScanner";
 import { BookCard } from "@/components/BookCard";
 import { Button } from "@/components/ui/button";
+import  Link  from 'next/link'; // why does this one not use the curly-braces??!
 import { Download, Trash2, BookX, CheckSquare, XSquare } from "lucide-react";
 import { exportToWooCommerceCsv } from "@/lib/wooCommerceCsv";
 import { useAuth } from "@/context/AuthContext";
@@ -176,7 +177,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8 pt-0">
-        <div className="space-y-8">
+        <div className="space-y-2">
           <ISBNScanner onScan={handleScan} isScanning={isScanning} onCancel={handleScannerCancel} userProfile={profile} />
           {profile && (
             <div className="flex items-center justify-center mt-0 mb-0" style={{"marginTop":0}}>
@@ -185,15 +186,14 @@ export default function Home() {
                   ${profile.credits < 1 ? 'font-bold text-red-500' : 'text-foreground'}`
                 }
               >Credits Remaining: {profile.credits}</span>
+              
+                <Button variant="link" className="px-4 ml-2 text-sm"><Link href="/purchase" passHref>Buy More Credits</Link></Button>
             </div>
           )}
 
           {books.length > 0 && (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-2 justify-between items-center p-4 bg-card border rounded-lg shadow-sm">
-                <div className="font-medium text-foreground">
-                  {selectedBooks.size} of {books.length} book(s) selected
-                </div>
+              <div className="flex flex-col sm:flex-row gap-2 justify-between items-center p-2 bg-card border rounded-lg shadow-sm">
                 <div className="flex gap-2 flex-wrap justify-center">
                    <Button variant="outline" onClick={handleSelectAll} disabled={books.length === 0}>
                     {allSelected ? <XSquare className="mr-2 h-4 w-4" /> : <CheckSquare className="mr-2 h-4 w-4" />}
@@ -208,7 +208,10 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="grid gap-6">
+              <div className="grid gap-2">
+               <div className="font-small text-sm text-foreground">
+                  {selectedBooks.size} of {books.length} book(s) selected
+                </div>
                 {books.map(book => (
                   <BookCard
                     key={book.id}
