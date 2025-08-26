@@ -20,7 +20,6 @@
 *.pem
 
 # Local Env Files
-.env
 .env.local
 
 # Log files
