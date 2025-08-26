@@ -1,14 +1,16 @@
 
 "use server";
 
-import { Book, UserPayment, UserProfile } from "./types";
+import { Book, UserProfile } from "./types";
 import { getAdminDb } from "./firebase-admin";
 import Stripe from 'stripe'
 import * as admin from 'firebase-admin';
+import { DocumentData } from "firebase/firestore";
 
 const BOOKS_DB = "books";
-const USER_PAYMENTS = "user_payments";
 const USER_PROFILES = "user_profiles";
+
+const POINTS_PER_PENNY = 1.0;  // 1 penny per point == 1 point per penny
 
 export async function getBook(isbn: string): Promise<Book | null> {
     try {
@@ -125,26 +127,25 @@ export async function createUserProfile(userEmail: string): Promise<UserProfile>
     return defaultProfile;
 }
 
-// This function handles both saving the user payment and updating the user profile
-export async function creditsPurchased(stripeSession: Stripe.Checkout.Session, userEmail: string): Promise<UserProfile | undefined> {
+async function findCustomerRecord(userId: string): Promise<DocumentData> {
+    const sessionPath = "/customers/" + userId;
+    const docRef = getAdminDb().doc(sessionPath);
+    return await docRef.get();
+}
+
+// This function handles updating the credits on the user profile
+export async function creditsPurchased(userId: string, amountTotal: number): Promise<UserProfile | undefined> {
     try {
-        const userProfile = await getUserProfile(userEmail);
-        userProfile.credits = userProfile.credits + 1000; // 1 penny per point
-
-        const userPayment: UserPayment = {
-            stripeReferenceId: stripeSession.client_reference_id as string,
-            stripeUserId: stripeSession.metadata?.userId as string || userEmail,
-            totalAmount: stripeSession.amount_total as number
-        };
-
-        // Perform both updates within a transaction
-        await getAdminDb().runTransaction(async (transaction) => {
-            const userProfileRef = getAdminDb().collection(USER_PROFILES).doc(userEmail);
-            const userPaymentRef = getAdminDb().collection(USER_PAYMENTS).doc(userEmail);
-            transaction.set(userProfileRef, userProfile, { merge: true });
-            transaction.set(userPaymentRef, userPayment, { merge: true });
-        });
-        return userProfile;
+        const customer = findCustomerRecord(userId);
+        if (customer.email) {
+            const userProfile = await getUserProfile(customer.email);
+            userProfile.credits = userProfile.credits + (POINTS_PER_PENNY * amountTotal);
+            saveUserProfile(userProfile, customer.email);
+            return userProfile;
+        } else {
+            console.error("No user_email found for customer %s", userId);
+            throw new Error("No user_email found for customer ");
+        }
     } catch (error) {
         throw new Error("Unable to record payment: " + (error as Error).message);
     }

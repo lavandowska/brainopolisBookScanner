@@ -29,6 +29,7 @@ export const getCheckoutPromise = async (
     price: priceId,
     success_url: window.location.origin,
     cancel_url: window.location.origin,
+    user_email: auth.currentUser?.email || null,
   });
 
   return new Promise<string>((resolve, reject) => {
