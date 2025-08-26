@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Handle the redirect result
     getRedirectResult(auth)
       .then((result) => {
-        console.log("getRedirectResult result= " + result);
+        //console.log("getRedirectResult result= " + result);
         if (result) {
           // This is the signed-in user
           const user = result.user;

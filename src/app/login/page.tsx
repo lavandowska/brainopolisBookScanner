@@ -52,8 +52,9 @@ export default function Login() {
             <p className="mt-1">Once you've completed scanning your inventory, you can then choose 
               which to export.  Currently only the WooCommerce import format is supported.
             </p>
-            <p className="mt-1">You'll need an account to track your inventory, future goals are to support OAuth 
-              via Google and Facebook.
+            <p className="mt-1">You'll need an account to track your inventory; create one
+              with your email and a password or login via Google.  We'll be adding Facebook, Apple
+              and any other popular OAuth providers you suggest.
             </p>
             {/* REGISTER */}
             <div className="mt-4 text-sm text-center text-gray-600">

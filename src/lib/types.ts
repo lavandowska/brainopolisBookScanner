@@ -16,6 +16,12 @@ export interface Book {
   weight: string;
 }
 
+export interface UserPayment {
+  stripeReferenceId: string,
+  stripeUserId: string,
+  totalAmount: number
+}
+
 export interface UserProfile {
   credits: number,
   amazonAffId: string, 

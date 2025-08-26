@@ -1,13 +1,14 @@
 
 "use server";
 
-import { Book, UserProfile } from "./types";
+import { Book, UserPayment, UserProfile } from "./types";
 import { getAdminDb } from "./firebase-admin";
+import Stripe from 'stripe'
 import * as admin from 'firebase-admin';
 
 const BOOKS_DB = "books";
-const USER_PROFILE = "user_profiles";
-
+const USER_PAYMENTS = "user_payments";
+const USER_PROFILES = "user_profiles";
 
 export async function getBook(isbn: string): Promise<Book | null> {
     try {
@@ -41,7 +42,7 @@ export async function saveBook(bookId: string, bookData: Book) {
 
 export async function getUserProfile(userEmail: string): Promise<UserProfile> {
     try {
-        const docRef = getAdminDb().collection(USER_PROFILE).doc(userEmail);
+        const docRef = getAdminDb().collection(USER_PROFILES).doc(userEmail);
         const docSnap = await docRef.get();
         if (docSnap.exists) {
             return docSnap.data() as UserProfile;
@@ -77,12 +78,12 @@ export async function getUserBooks(userEmail: string): Promise<Book[]> {
 export async function saveUserIsbns(userEmail: string, isbns: string[]) {
     const userProfile = await getUserProfile(userEmail);
     userProfile.isbns = isbns;
-    await saveUserProfile(userProfile);
+    await saveUserProfile(userProfile, userEmail);
 }
 
 // do not export this - exposes it to FE where the 'credits' could be modified
-async function saveUserProfile(userProfile: UserProfile) {
-    const docRef = getAdminDb().collection(USER_PROFILE).doc(userProfile.userId);
+async function saveUserProfile(userProfile: UserProfile, userEmail: string) {
+    const docRef = getAdminDb().collection(USER_PROFILES).doc(userEmail);
     try {
         // try fetching book, on error add new book
         await docRef.get();
@@ -97,17 +98,20 @@ export async function saveUserBook(isbn: string, userEmail: string) {
     if (userProfile.isbns.includes(isbn)) {
         return;
     }
+
+    // Perform the update within a transaction
+    await getAdminDb().runTransaction(async (transaction) => {
     userProfile.isbns.push(isbn);
     userProfile.credits--;
-    try {
-        await saveUserProfile(userProfile);
-    } catch (e) {
-        throw new Error("Unable to save book to user profile.");
-    }
+
+    // Update the user profile within the transaction
+    const userProfileRef = getAdminDb().collection(USER_PROFILES).doc(userEmail);
+    transaction.set(userProfileRef, userProfile, { merge: true });
+    });
 }
 
 export async function createUserProfile(userEmail: string): Promise<UserProfile> {
-    const docRef = getAdminDb().collection(USER_PROFILE).doc(userEmail);
+    const docRef = getAdminDb().collection(USER_PROFILES).doc(userEmail);
     const defaultProfile: UserProfile = {
         credits: 5, // Default credits
         amazonAffId: "",
@@ -121,3 +125,27 @@ export async function createUserProfile(userEmail: string): Promise<UserProfile>
     return defaultProfile;
 }
 
+// This function handles both saving the user payment and updating the user profile
+export async function creditsPurchased(stripeSession: Stripe.Checkout.Session, userEmail: string): Promise<UserProfile | undefined> {
+    try {
+        const userProfile = await getUserProfile(userEmail);
+        userProfile.credits = userProfile.credits + 1000; // 1 penny per point
+
+        const userPayment: UserPayment = {
+            stripeReferenceId: stripeSession.client_reference_id as string,
+            stripeUserId: stripeSession.metadata?.userId as string || userEmail,
+            totalAmount: stripeSession.amount_total as number
+        };
+
+        // Perform both updates within a transaction
+        await getAdminDb().runTransaction(async (transaction) => {
+            const userProfileRef = getAdminDb().collection(USER_PROFILES).doc(userEmail);
+            const userPaymentRef = getAdminDb().collection(USER_PAYMENTS).doc(userEmail);
+            transaction.set(userProfileRef, userProfile, { merge: true });
+            transaction.set(userPaymentRef, userPayment, { merge: true });
+        });
+        return userProfile;
+    } catch (error) {
+        throw new Error("Unable to record payment: " + (error as Error).message);
+    }
+}

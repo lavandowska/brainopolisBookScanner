@@ -9,14 +9,14 @@ import { Header } from "@/components/Header";
 import { ISBNScanner } from "@/components/ISBNScanner";
 import { BookCard } from "@/components/BookCard";
 import { Button } from "@/components/ui/button";
-import  Link  from 'next/link'; // why does this one not use the curly-braces??!
 import { Download, Trash2, BookX, CheckSquare, XSquare } from "lucide-react";
 import { exportToWooCommerceCsv } from "@/lib/wooCommerceCsv";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { getUserBooks, saveUserIsbns, getUserProfile } from "@/lib/firebaseFunctions";
+import { getUserBooks, saveUserIsbns, getUserProfile, creditsPurchased } from "@/lib/firebaseFunctions";
 import { User } from "firebase/auth";
-
+import { getCheckoutPromise } from "./stripePayment";
+import { app } from '@/lib/firebase-auth';
 
 export default function Home() {
   const [profile, setProfile] = useState<UserProfile>();
@@ -26,6 +26,7 @@ export default function Home() {
   const { toast } = useToast();
   const { user, loading } = useAuth();
   const router = useRouter(); // Initialize router
+  const priceId = 'price_1S02qaCj9FNB0f08vFTpITjJ';
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -169,7 +170,15 @@ export default function Home() {
   
   const handleScannerCancel = () => {
     setIsScanning(false);
-  }
+  };
+
+  const handleOnCheckout = () => {
+    getCheckoutPromise(app, priceId)
+    .then(stripeUrl => { 
+      window.location.href = stripeUrl;
+    })
+    .catch(error => console.log(error));
+  };
 
   const allSelected = selectedBooks.size > 0 && selectedBooks.size === books.length;
 
@@ -186,8 +195,9 @@ export default function Home() {
                   ${profile.credits < 1 ? 'font-bold text-red-500' : 'text-foreground'}`
                 }
               >Credits Remaining: {profile.credits}</span>
-              
-                <Button variant="link" className="px-4 ml-2 text-sm"><Link href="/purchase" passHref>Buy More Credits</Link></Button>
+              <Button variant="link" className="px-4 ml-2 text-sm" onClick={handleOnCheckout}>
+                Buy More Credits
+              </Button>
             </div>
           )}
 
