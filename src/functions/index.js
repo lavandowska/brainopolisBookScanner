@@ -9,8 +9,8 @@ admin.initializeApp();
 const app = express();
 
 // Define Stripe secret keys using Firebase's secret management
-const stripeToken = defineString("stripe_token");
-const paymentsWebhookSecret = defineString("payments_webhook_secret");
+const stripeToken = defineString("STRIPE_TOKEN");
+const paymentsWebhookSecret = defineString("PAYMENTS_WEBHOOK_SECRET");
 
 // Automatically allow cross-origin requests
 app.use(cors({ origin: true }));
@@ -20,7 +20,7 @@ app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf } }));
 
 exports.stripeSessionCompletedWebhook = onRequest(
   // Make secrets available to the function
-  { secrets: ["stripe_token", "payments_webhook_secret"] },
+  { secrets: ["STRIPE_TOKEN", "PAYMENTS_WEBHOOK_SECRET"] },
   async (req, res) => {
     const stripe = require("stripe")(stripeToken.value());
     let event;
