@@ -16,8 +16,13 @@ const app = express();
 // Use CORS middleware
 app.use(cors({ origin: true }));
 
-// Handle POST requests to /stripe-webhook
-app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (req, res) => {
+// Expose Express app as a single Cloud Function
+exports.stripeSessionCompletedWebhook = functions.https.onRequest(app);
+
+// Handle POST requests
+app.post("/", async (req, res) => {
+    // Assuming 1 cent == 1 credit
+    const POINTS_PER_PENNY = 1.0;  // 1 penny per point == 1 point per penny
     const stripe = require("stripe")(stripeToken.value());
     let event;
 
@@ -34,6 +39,7 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
 
     // Handle the checkout.session.completed event
     if (event.type === "checkout.session.completed") {
+        //console.log(JSON.stringify(event.data));
         const session = event.data.object;
         const userId = session.client_reference_id;
         const amountTotal = session.amount_total;
@@ -60,8 +66,7 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
                     throw new Error(`User profile not found for ${userEmail}`);
                 }
                 const currentCredits = userProfileDoc.data().credits || 0;
-                // Assuming 100 credits for every 1000 cents ($10.00)
-                const creditsToAdd = (amountTotal / 1000) * 1000;
+                const creditsToAdd = (amountTotal * POINTS_PER_PENNY);
                 const newCredits = currentCredits + creditsToAdd;
                 transaction.update(userProfileRef, { credits: newCredits });
                 console.log(`Successfully added ${creditsToAdd} credits to ${userEmail}. New balance: ${newCredits}`);
@@ -71,11 +76,10 @@ app.post("/stripe-webhook", express.raw({ type: "application/json" }), async (re
             console.error("Error updating user credits:", error);
             return res.status(500).send("Internal server error while updating credits.");
         }
+    } else {
+        console.warn("Unhandled event type:", event.type);
+        return res.status(400).send("Unhandled event type:" + event.type);
     }
 
     res.status(200).send();
 });
-
-
-// Expose Express app as a single Cloud Function
-exports.stripeSessionCompletedWebhook = functions.https.onRequest(app);
