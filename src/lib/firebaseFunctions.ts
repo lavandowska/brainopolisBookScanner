@@ -3,14 +3,10 @@
 
 import { Book, UserProfile } from "./types";
 import { getAdminDb } from "./firebase-admin";
-import Stripe from 'stripe'
 import * as admin from 'firebase-admin';
-import { DocumentData } from "firebase/firestore";
 
 const BOOKS_DB = "books";
 const USER_PROFILES = "user_profiles";
-
-const POINTS_PER_PENNY = 1.0;  // 1 penny per point == 1 point per penny
 
 export async function getBook(isbn: string): Promise<Book | null> {
     try {
@@ -127,26 +123,3 @@ export async function createUserProfile(userEmail: string): Promise<UserProfile>
     return defaultProfile;
 }
 
-async function findCustomerRecord(userId: string): Promise<DocumentData> {
-    const sessionPath = "/customers/" + userId;
-    const docRef = getAdminDb().doc(sessionPath);
-    return await docRef.get();
-}
-
-// This function handles updating the credits on the user profile
-export async function creditsPurchased(userId: string, amountTotal: number): Promise<UserProfile | undefined> {
-    try {
-        const customer = findCustomerRecord(userId);
-        if (customer.email) {
-            const userProfile = await getUserProfile(customer.email);
-            userProfile.credits = userProfile.credits + (POINTS_PER_PENNY * amountTotal);
-            saveUserProfile(userProfile, customer.email);
-            return userProfile;
-        } else {
-            console.error("No user_email found for customer %s", userId);
-            throw new Error("No user_email found for customer ");
-        }
-    } catch (error) {
-        throw new Error("Unable to record payment: " + (error as Error).message);
-    }
-}

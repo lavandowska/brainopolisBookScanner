@@ -9,11 +9,11 @@ import { Header } from "@/components/Header";
 import { ISBNScanner } from "@/components/ISBNScanner";
 import { BookCard } from "@/components/BookCard";
 import { Button } from "@/components/ui/button";
-import { Download, Trash2, BookX, CheckSquare, XSquare } from "lucide-react";
+import { Download, Trash2, BookX, CheckSquare, XSquare, Loader2 } from "lucide-react";
 import { exportToWooCommerceCsv } from "@/lib/wooCommerceCsv";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { getUserBooks, saveUserIsbns, getUserProfile, creditsPurchased } from "@/lib/firebaseFunctions";
+import { getUserBooks, saveUserIsbns, getUserProfile } from "@/lib/firebaseFunctions";
 import { User } from "firebase/auth";
 import { getCheckoutPromise } from "./stripePayment";
 import { app } from '@/lib/firebase-auth';
@@ -23,10 +23,11 @@ export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
   const [isScanning, setIsScanning] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const { toast } = useToast();
   const { user, loading } = useAuth();
   const router = useRouter(); // Initialize router
-  const priceId = 'price_1S02qaCj9FNB0f08vFTpITjJ';
+  const priceId = 'price_1S0kaHCv4y0cygVMmQNymcE0';
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -173,11 +174,20 @@ export default function Home() {
   };
 
   const handleOnCheckout = () => {
+    setIsCheckingOut(true);
     getCheckoutPromise(app, priceId)
     .then(stripeUrl => { 
       window.location.href = stripeUrl;
     })
-    .catch(error => console.log(error));
+    .catch(error => {
+        console.error("Stripe checkout error:", error);
+        toast({
+            variant: "destructive",
+            title: "Checkout Error",
+            description: "Could not redirect to payment page. Please try again.",
+        });
+        setIsCheckingOut(false);
+    });
   };
 
   const allSelected = selectedBooks.size > 0 && selectedBooks.size === books.length;
@@ -195,8 +205,9 @@ export default function Home() {
                   ${profile.credits < 1 ? 'font-bold text-red-500' : 'text-foreground'}`
                 }
               >Credits Remaining: {profile.credits}</span>
-              <Button variant="link" className="px-4 ml-2 text-sm" onClick={handleOnCheckout}>
-                Buy More Credits
+              <Button variant="link" className="px-4 ml-2 text-sm" onClick={handleOnCheckout} disabled={isCheckingOut}>
+                {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isCheckingOut ? 'Processing...' : 'Buy More Credits'}
               </Button>
             </div>
           )}
@@ -255,4 +266,3 @@ export default function Home() {
 function userIdentifier(user: User): string {
   return user.email || user.uid;
 }
-

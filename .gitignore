@@ -21,10 +21,11 @@
 
 # Local Env Files
 .env.local
-.env.brainopolisbooks-ptjrj
+*.env.brainopolisbooks-ptjrj
 
 # Log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 *firebase-debug.log
+.gitignore
