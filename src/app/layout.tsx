@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     title: 'BookLook: ISBN Scanner & Book Inventory Management',
     description: 'The smart way to catalog and value your book collection.',
     type: 'website',
-    url: 'https://bookrun.brainopolis.com', // Replace with your actual domain
+    url: 'https://bookrun.brainopolis.com', 
     images: [
       {
         url: '/og-image.png', // You would need to create this image

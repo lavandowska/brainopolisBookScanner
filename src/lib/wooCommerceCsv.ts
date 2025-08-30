@@ -1,6 +1,7 @@
-import { Book } from "./types";
 
-export function exportToWooCommerceCsv(books: Book[]) {
+import { Book, UserProfile } from "@/lib/types";
+
+export function exportToWooCommerceCsv(books: Book[], userProfile: UserProfile) {
     const headers = [
         "Type", "SKU", "Name", "Published", "Is featured?", "Visibility in catalog", "Short description",
         "Description", "Date sale price starts", "Date sale price ends", "Tax status", "Tax class", "In stock?",
@@ -9,13 +10,13 @@ export function exportToWooCommerceCsv(books: Book[]) {
         "Tags", "Shipping class", "Images", "Download limit", "Download expiry days", "Parent",
         "Grouped products", "Upsells", "Cross-sells", "External URL", "Button text", "Position"
     ];
-    const amazonAffTag = process.env.NEXT_PUBLIC_AMAZON_AFFILIATE_TAG; 
-    const amazonAffQuery = (amazonAffTag == undefined ? undefined : `?tag=${amazonAffTag}&language=en_US&th=1&ref_=as_li_ss_tl`);
+    const amazonAffTag = userProfile.amazonAffId || undefined; 
+    var amazonAffQuery = (amazonAffTag == undefined ? undefined : `?tag=${amazonAffTag}&language=en_US&th=1&ref_=as_li_ss_tl`);
     
     const rows = books.map(book => {
         // exports with HTML in them must be uploaded to the server and Imported to WooCommerce from there
         // this is a "limitation" in WordPress for security's sake
-        const alsoOnAmazon = (amazonAffTag == undefined ? '' : ` (<a href='https://www.amazon.com/dp/${book.isbn10}${amazonAffQuery}' target='amazon'>Also on Amazon</a>)`);
+        const alsoOnAmazon = (amazonAffTag == undefined ? '' : ` (<a href='https://www.amazon.com/dp/${book.isbn10}${amazonAffQuery}' target='amazon'>Check Amazon</a>)`);
         const description = book.description + alsoOnAmazon;
         const row = {
             "Type": "simple",

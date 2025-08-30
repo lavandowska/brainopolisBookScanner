@@ -147,7 +147,7 @@ export default function Home() {
   const handleExportSelected = () => {
       const booksToExport = books.filter(book => selectedBooks.has(book.id));
       if(booksToExport.length > 0) {
-          exportToWooCommerceCsv(booksToExport);
+          exportToWooCommerceCsv(booksToExport, profile);
           toast({
               title: "Export Successful",
               description: `${booksToExport.length} book(s) exported to CSV.`,

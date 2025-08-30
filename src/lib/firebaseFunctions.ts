@@ -52,6 +52,7 @@ export async function getUserProfile(userEmail: string): Promise<UserProfile> {
 }
 
 export async function getUserBooks(userEmail: string): Promise<Book[]> {
+    var books = new Array();
     try {
         const userProfile = await getUserProfile(userEmail);
 
@@ -60,17 +61,36 @@ export async function getUserBooks(userEmail: string): Promise<Book[]> {
             return [];
         }
 
-        const bookDocs = await getAdminDb().collection(BOOKS_DB)
-            .where(admin.firestore.FieldPath.documentId(), 'in', bookIds).get();
-
-        const books = bookDocs.docs.map(doc => doc.data() as Book);
+        const collectionPath = getAdminDb().collection(BOOKS_DB);
+        const batches = [];
+        while (bookIds.length) {
+            // firestore limits batches to 30
+            // https://firebase.google.com/docs/firestore/query-data/queries#collection-group-query
+            const batch = bookIds.splice(0, 30);
         
-        return books.sort((a, b) => a.title.localeCompare(b.title));
+            // add the batch request to to a queue
+            batches.push(
+                collectionPath
+                .where(
+                    admin.firestore.FieldPath.documentId(),
+                    'in',
+                    [...batch]
+                )
+                .get()
+                .then(results => results.docs.map(result => ({ /* id: result.id, */ ...result.data() }) ))
+            )
+        }
+
+        // after all of the data is fetched, return it
+        books = await Promise.all(batches)
+            .then(content => content.flat());
+        
     } catch (e) {
-        //console.log("Could not get user books.", e);
+        console.log("Could not get user books.", e);
         // Don't throw, just return empty array
     }
-    return [];
+    return books.sort((a, b) => a.title.localeCompare(b.title));
+
 }
 
 export async function saveUserIsbns(userEmail: string, isbns: string[]) {
