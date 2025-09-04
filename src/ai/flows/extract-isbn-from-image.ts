@@ -24,7 +24,7 @@ const ExtractIsbnFromImageOutputSchema = z.object({
     .string()
     .optional()
     .describe(
-      'The extracted 10 or 13-digit ISBN. Should be numbers only. Can be null if no ISBN is found.'
+      'The extracted 10 or 13-digit ISBN. Should be numbers or letter X only. Can be null if no ISBN is found.'
     ),
 });
 export type ExtractIsbnFromImageOutput = z.infer<typeof ExtractIsbnFromImageOutputSchema>;
@@ -34,8 +34,11 @@ const prompt = ai.definePrompt({
   name: 'extractIsbnPrompt',
   input: {schema: ExtractIsbnFromImageInputSchema},
   output: {schema: ExtractIsbnFromImageOutputSchema},
-  prompt: `You are an expert at extracting information from images. Your task is to find an ISBN in the provided image.
-Look for the text "ISBN" and extract the 10 or 13-digit number that follows it. The ISBN may contain hyphens, but you should return only the digits.
+  prompt: `You are an expert at extracting information from images. 
+Your task is to find an ISBN in the provided image.
+Look for the text "ISBN" and extract the 10 or 13-digit number that follows it. 
+The ISBN may contain hyphens, but you should return only the digits.
+For the purposes of this task consider the letter X to be a valid digit.
 If you find an ISBN, return it in the 'isbn' field. If you cannot find an ISBN, return null for the 'isbn' field.
 
 Image: {{media url=imageDataUri}}`,

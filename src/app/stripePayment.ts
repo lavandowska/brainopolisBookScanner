@@ -9,9 +9,9 @@ import {
 } from "firebase/firestore";
 
 export const getCheckoutPromise = async (
-  app: FirebaseApp,
-  priceId: string
+  app: FirebaseApp
 ): Promise<string> => {
+  const priceId = process.env.NEXT_PUBLIC_PRICE_ID;
   const auth = getAuth(app);
   const userId = auth.currentUser?.uid;
   if (!userId) throw new Error("User is not authenticated");

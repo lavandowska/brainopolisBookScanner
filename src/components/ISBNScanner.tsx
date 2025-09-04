@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { extractIsbnFromImage } from '@/ai/flows/extract-isbn-from-image';
+import { UserProfile } from '@/lib/types';
 
 interface ISBNScannerProps {
     onScan: (isbn: string) => Promise<{error?: string}>;

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -27,7 +26,6 @@ export default function Home() {
   const { toast } = useToast();
   const { user, loading } = useAuth();
   const router = useRouter(); // Initialize router
-  const priceId = 'price_1S0kaHCv4y0cygVMmQNymcE0';
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -175,8 +173,7 @@ export default function Home() {
 
   const handleOnCheckout = () => {
     setIsCheckingOut(true);
-    getCheckoutPromise(app, priceId)
-    .then(stripeUrl => { 
+    getCheckoutPromise(app).then(stripeUrl => { 
       window.location.href = stripeUrl;
     })
     .catch(error => {

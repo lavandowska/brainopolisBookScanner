@@ -33,7 +33,7 @@ export async function saveBook(bookId: string, bookData: Book) {
             await docRef.create(bookData);
         } catch (e2) {
             console.error("Error adding book: ", e2);
-            throw new Error("Unable to save new book for ISBN " + bookData.id + " on databaseId " + getAdminDb().databaseId);
+            throw new Error("Unable to save new book for ISBN " + bookData.id + ": " + e2);
         }
     }
 }
